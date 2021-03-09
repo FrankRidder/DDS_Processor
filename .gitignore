@@ -52,3 +52,5 @@ PLLJ_PLLSPE_INFO.txt # The generated PLL specification file
 mips_processor.qpf
 
 mips_processor.qsf
+
+cr_ie_info.json

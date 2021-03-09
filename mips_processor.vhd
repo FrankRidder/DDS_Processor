@@ -1,14 +1,16 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+USE work.processor_types.ALL;
+
 ENTITY mips_processor IS
   PORT (
   clk : IN std_logic;
   reset : IN std_logic;
-  read  : IN  std_ulogic;
   ready : IN std_ulogic;
-  input_bus  : IN std_logic(31 downto 0);
+  input_bus  : IN double_word;
+  read  : OUT  std_ulogic;
   write : OUT  std_ulogic;
-  adress_bus : OUT std_logic(31 downto 0);
-  output_bus : OUT std_logic(31 downto 0);
+  adress_bus : OUT double_word;
+  output_bus : OUT double_word);
 
 END mips_processor;
