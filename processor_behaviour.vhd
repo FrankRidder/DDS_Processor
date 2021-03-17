@@ -144,7 +144,7 @@ BEGIN
 						--Write to register with write file
 --				 WHEN ADDI =>	TODO	
 
-				 WHEN SUB => int_temp := int_rs - int_rt;
+				 WHEN SUBOP => int_temp := int_rs - int_rt;
 				 
 				 WHEN DIV => 
 					read_register(rs, word_temp);
