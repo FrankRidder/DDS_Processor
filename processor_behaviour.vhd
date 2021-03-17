@@ -130,7 +130,14 @@ BEGIN
 						--Write to register with write file
 --				 WHEN ADDI =>	TODO	
 				 WHEN SUB => int_temp := int_rs - int_rt;
---				 WHEN DIV => TODO
+				 WHEN DIV => 
+					read_register(rs, word_temp);
+					int_rs := to_integer(signed(word_temp));
+					read_register(rt, word_temp);
+					int_rt := to_integer(signed(word_temp));
+					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, 32));
+					hi := double_word_temp(31 downto 16);
+					lo := double_word_temp(15 downto 0);
 --				 WHEN MFLO => TODO
 --				 WHEN MFHI => TODO
 				 WHEN MULT =>
