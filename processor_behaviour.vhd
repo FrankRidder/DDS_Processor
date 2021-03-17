@@ -21,12 +21,13 @@ BEGIN
 			ALIAS cc_z  : std_logic IS cc(1);
 			ALIAS cc_v  : std_logic IS cc(0);
 		VARIABLE regfile : register_file;
+		VARIABLE register_temp : word; --temporary register
 		VARIABLE lo : natural;
 		VARIABLE hi : natural;
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
 		VARIABLE word_temp   : word;
-		VARIABLE double_word_temp :double_word;
+		VARIABLE double_word_temp :double_word; --used for temporary 32 bit logic vectors
 		VARIABLE int_temp : integer;
 		CONSTANT DONTCARE : double_word := (OTHERS => '-');
 		
@@ -121,7 +122,7 @@ BEGIN
 --				 WHEN ANDOP => TODO
 --				 WHEN OROP => TODO
 --				 WHEN ORI=> TODO
-				 WHEN ADD =>? 
+				 WHEN ADD =>
 						read_register(rs,word_temp);
 				      int_rs := to_integer(signed(word_temp));
 						read_register(rt,word_temp);
@@ -138,8 +139,8 @@ BEGIN
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, 32));
 					hi := double_word_temp(31 downto 16);
 					lo := double_word_temp(15 downto 0);
---				 WHEN MFLO => TODO
---				 WHEN MFHI => TODO
+				 WHEN MFLO => register_temp := lo;
+				 WHEN MFHI => register_temp := hi;
 				 WHEN MULT =>
 					read_register(rs, word_temp);
 					int_rs := to_integer(signed(word_temp));
