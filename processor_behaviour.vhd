@@ -109,18 +109,33 @@ BEGIN
 		--
 		read_memory(pc,current_instr);
 		IF reset /= '1' THEN
-			 pc:=pc+1;
+			 pc:=pc+1; -- TODO: shouldn't this be 4? at least that is mostly how it works with Assembly
 			 --
 			 -- decode & execute
 			 -- 
 			 CASE op IS
-				 WHEN ADD =>
+--				 WHEN BGEZ =>
+--				 WHEN BEQ =>
+--				 WHEN ANDOP =>
+--				 WHEN OROP =>
+--				 WHEN ORI=>		
+				 WHEN ADD => --TODO: cant you just say output := rs_int + rt_int? 
 						read_register(rs,word_temp);
 				      int_rs := to_integer(signed(word_temp));
 						read_register(rt,word_temp);
 						int_rt := to_integer(signed(word_temp));
 						int_temp := int_rs + int_rt;
 						--Write to register with write file
+--				 WHEN ADDI =>		
+--				 WHEN SUB =>
+--				 WHEN DIV =>
+--				 WHEN MFLO =>
+--				 WHEN MFHI =>
+--				 WHEN MULT =>
+--				 WHEN SLT=>
+--				 WHEN LUI =>
+--				 WHEN LW =>
+--				 WHEN SW =>		 
 				 WHEN NOP => ASSERT false REPORT "finished calculation" SEVERITY failure;
 			 END CASE;
 		END IF;
