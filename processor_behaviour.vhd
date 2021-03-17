@@ -24,6 +24,8 @@ BEGIN
 		VARIABLE register_temp : word; --temporary register
 		VARIABLE lo : natural;
 		VARIABLE hi : natural;
+		VARIABLE rt_temp : word;
+		VARIABLE rs_temp : word;
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
 		VARIABLE word_temp   : word;
@@ -118,10 +120,21 @@ BEGIN
 			 CASE op IS
 --			 
 --				 WHEN BGEZ => TODO
+
 --				 WHEN BEQ => TODO
---				 WHEN ANDOP => TODO
---				 WHEN OROP => TODO
+
+				 WHEN ANDOP =>
+					read_register(rs, rs_temp);
+					read_register(rt, rt_temp);
+					register_temp := rs_temp AND rt_temp;
+					
+				 WHEN OROP =>
+					read_register(rs, rs_temp);
+					read_register(rt, rt_temp);
+					register_temp := rs_temp OR rt_temp;
+					
 --				 WHEN ORI=> TODO
+
 				 WHEN ADD =>
 						read_register(rs,word_temp);
 				      int_rs := to_integer(signed(word_temp));
@@ -130,7 +143,9 @@ BEGIN
 						int_temp := int_rs + int_rt;
 						--Write to register with write file
 --				 WHEN ADDI =>	TODO	
+
 				 WHEN SUB => int_temp := int_rs - int_rt;
+				 
 				 WHEN DIV => 
 					read_register(rs, word_temp);
 					int_rs := to_integer(signed(word_temp));
@@ -139,8 +154,11 @@ BEGIN
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, 32));
 					hi := double_word_temp(31 downto 16);
 					lo := double_word_temp(15 downto 0);
+					
 				 WHEN MFLO => register_temp := lo;
+
 				 WHEN MFHI => register_temp := hi;
+
 				 WHEN MULT =>
 					read_register(rs, word_temp);
 					int_rs := to_integer(signed(word_temp));
@@ -149,10 +167,15 @@ BEGIN
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, 32));
 					hi := double_word_temp(31 downto 16);
 					lo := double_word_temp(15 downto 0);
+					
 --				 WHEN SLT=> TODO
+
 --				 WHEN LUI => TODO
+
 --				 WHEN LW => TODO
+
 --				 WHEN SW =>	TODO
+
 				 WHEN NOP => ASSERT false REPORT "finished calculation" SEVERITY failure;
 			 END CASE;
 		END IF;
