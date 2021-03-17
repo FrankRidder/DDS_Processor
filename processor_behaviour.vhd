@@ -9,7 +9,7 @@ BEGIN
 		--Needed internal memory
 		VARIABLE pc : natural;
 		VARIABLE current_instr:double_word;
-			ALIAS op  : bit6 IS current_instr(31 DOWNTO 26);
+			ALIAS op  : bit6 IS current_instr(word_length DOWNTO 26);
 			ALIAS rs : bit5 IS current_instr(25 DOWNTO 21);
 			ALIAS rt : bit5 IS current_instr(20 DOWNTO 16);
 			ALIAS rd : bit5 IS current_instr(15 DOWNTO 11);
@@ -26,6 +26,7 @@ BEGIN
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
 		VARIABLE word_temp   : word;
+		VARIABLE double_word_temp :double_word;
 		VARIABLE int_temp : integer;
 		CONSTANT DONTCARE : double_word := (OTHERS => '-');
 		
@@ -114,28 +115,36 @@ BEGIN
 			 -- decode & execute
 			 -- 
 			 CASE op IS
---				 WHEN BGEZ =>
---				 WHEN BEQ =>
---				 WHEN ANDOP =>
---				 WHEN OROP =>
---				 WHEN ORI=>		
-				 WHEN ADD => --TODO: cant you just say output := rs_int + rt_int? 
+--			 
+--				 WHEN BGEZ => TODO
+--				 WHEN BEQ => TODO
+--				 WHEN ANDOP => TODO
+--				 WHEN OROP => TODO
+--				 WHEN ORI=> TODO
+				 WHEN ADD =>? 
 						read_register(rs,word_temp);
 				      int_rs := to_integer(signed(word_temp));
 						read_register(rt,word_temp);
 						int_rt := to_integer(signed(word_temp));
 						int_temp := int_rs + int_rt;
 						--Write to register with write file
---				 WHEN ADDI =>		
---				 WHEN SUB =>
---				 WHEN DIV =>
---				 WHEN MFLO =>
---				 WHEN MFHI =>
---				 WHEN MULT =>
---				 WHEN SLT=>
---				 WHEN LUI =>
---				 WHEN LW =>
---				 WHEN SW =>		 
+--				 WHEN ADDI =>	TODO	
+				 WHEN SUB => int_temp := int_rs - int_rt;
+--				 WHEN DIV => TODO
+--				 WHEN MFLO => TODO
+--				 WHEN MFHI => TODO
+				 WHEN MULT =>
+					read_register(rs, word_temp);
+					int_rs := to_integer(signed(word_temp));
+					read_register(rt, word_temp);
+					int_rt := to_integer(signed(word_temp));
+					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, 32));
+					hi := double_word_temp(31 downto 16);
+					lo := double_word_temp(15 downto 0);
+--				 WHEN SLT=> TODO
+--				 WHEN LUI => TODO
+--				 WHEN LW => TODO
+--				 WHEN SW =>	TODO
 				 WHEN NOP => ASSERT false REPORT "finished calculation" SEVERITY failure;
 			 END CASE;
 		END IF;
