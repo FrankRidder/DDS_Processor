@@ -22,8 +22,8 @@ BEGIN
 			ALIAS cc_v  : std_logic IS cc(0);
 		VARIABLE regfile : register_file;
 		VARIABLE register_temp : word; --temporary register
-		VARIABLE lo : natural;
-		VARIABLE hi : natural;
+		VARIABLE lo : word;
+		VARIABLE hi : word;
 		VARIABLE rt_temp : word;
 		VARIABLE rs_temp : word;
 		VARIABLE int_rs : integer; 
