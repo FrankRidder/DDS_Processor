@@ -9,7 +9,7 @@ BEGIN
 		--Needed internal memory
 		VARIABLE pc : natural;
 		VARIABLE current_instr:double_word;
-			ALIAS op  : bit6 IS current_instr(word_length DOWNTO 26);
+			ALIAS op  : bit6 IS current_instr(31 DOWNTO 26);
 			ALIAS rs : bit5 IS current_instr(25 DOWNTO 21);
 			ALIAS rt : bit5 IS current_instr(20 DOWNTO 16);
 			ALIAS rd : bit5 IS current_instr(15 DOWNTO 11);
