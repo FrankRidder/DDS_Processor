@@ -38,15 +38,12 @@ BEGIN
 
 		TYPE bool2std_logic_table IS ARRAY (boolean) OF std_logic;
 		CONSTANT BOOL2STD:bool2std_logic_table:=(false=>'0', true=>'1');
-		
-		--Needed funtions
-			--Writemem
 			
 		--Set or clear condition codes based on given data
-		PROCEDURE set_clear_cc(data : IN integer; rd : OUT word) IS
+		PROCEDURE set_clear_cc(data : IN integer; rd : OUT double_word) IS
 		
-		CONSTANT LOW  : integer := -2**15;
-		CONSTANT HIGH : integer := 2**15-1;
+		CONSTANT LOW  : integer := -2**(double_word_length-1);
+		CONSTANT HIGH : integer := 2**(double_word_length-1)-1;
 		
 		BEGIN
 			IF (data<LOW) or (data>HIGH) THEN -- overflow
@@ -54,7 +51,7 @@ BEGIN
 				cc_v:='1'; cc_n:='-'; cc_z:='-'; rd:=(OTHERS=>'-');
 			ELSE
 				cc_v:='0'; cc_n:=BOOL2STD(data<0); cc_z:=BOOL2STD(data=0);
-				rd := std_logic_vector(to_signed(data,32));
+				rd := std_logic_vector(to_signed(data,double_word_length));
 			END IF;
 		END set_clear_cc;		
 		
@@ -79,11 +76,10 @@ BEGIN
 		end write_register;
 		
 		--Read from given memory file
-		PROCEDURE read_memory (addr   : IN natural;
-										result : OUT double_word) IS
+		PROCEDURE read_memory (address : IN natural; result : OUT double_word) IS
 		BEGIN
 			-- put address on output
-			adress_bus <= std_logic_vector(to_unsigned(addr,32));
+			address_bus <= std_logic_vector(to_unsigned(address,double_word_length));
 			WAIT UNTIL rising_edge(clk);
 			IF reset='1' THEN
 				  RETURN;
@@ -120,10 +116,50 @@ BEGIN
 			END IF;
 
 			read <= '0'; 
-			adress_bus <= DONTCARE;
+			address_bus <= DONTCARE;
 		END read_memory;                       
+		
+		--write to given memory file
+		PROCEDURE memory_write(address : IN natural; data : IN double_word) IS
+		BEGIN
+			-- put address on output
+			address_bus <= std_logic_vector(to_unsigned(address,double_word_length));
+			WAIT UNTIL rising_edge(clk);
+			IF reset='1' THEN
+				RETURN;
+			END IF;
 
-			
+			LOOP -- ready must be low (handshake)
+				IF reset='1' THEN
+					return;
+				END IF;
+				EXIT WHEN ready='0';
+				WAIT UNTIL rising_edge(clk)
+			END LOOP;
+
+      output_bus <= data;
+      WAIT UNTIL rising_edge(clk)
+      IF reset='1' THEN
+        RETURN;
+      END IF;  
+      write <= '1';
+
+      LOOP
+        WAIT UNTIL rising_edge(clk)
+        IF reset='1' THEN
+          RETURN;
+        END if;
+        EXIT WHEN ready='1';  
+      END LOOP;
+      WAIT UNTIL rising_edge(clk)
+      if reset='1' THEN
+        RETURN;
+      END if;
+      --
+      write <= '0';
+      output_bus <= DONTCARE;
+      address_bus <= DONTCARE;
+    END memory_write;
 			
 		--Processor loop:
 		BEGIN 
@@ -200,7 +236,7 @@ BEGIN
 					int_rs := to_integer(signed(word_temp));
 					read_register(rt, word_temp);
 					int_rt := to_integer(signed(word_temp));
-					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, 32));
+					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
 					hi := double_word_temp(31 downto 16);
 					lo := double_word_temp(15 downto 0);
 					
@@ -213,7 +249,7 @@ BEGIN
 					int_rs := to_integer(signed(word_temp));
 					read_register(rt, word_temp);
 					int_rt := to_integer(signed(word_temp));
-					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, 32));
+					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
 					hi := double_word_temp(31 downto 16);
 					lo := double_word_temp(15 downto 0);
 					

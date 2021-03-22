@@ -10,7 +10,7 @@ ENTITY mips_processor IS
   input_bus  : IN double_word;
   read  : OUT  std_ulogic;
   write : OUT  std_ulogic;
-  adress_bus : OUT double_word;
+  address_bus : OUT double_word;
   output_bus : OUT double_word);
 
 END mips_processor;
