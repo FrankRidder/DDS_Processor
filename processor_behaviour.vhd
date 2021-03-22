@@ -241,8 +241,8 @@ BEGIN
 					read_register(rt, word_temp);
 					int_rt := to_integer(signed(word_temp));
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
-					hi := double_word_temp(31 downto 16);
-					lo := double_word_temp(15 downto 0);
+					hi := double_word_temp(63 downto 32);
+					lo := double_word_temp(31 downto 0);
 					
 				 WHEN MFLO => register_temp := lo;
 
@@ -254,8 +254,8 @@ BEGIN
 					read_register(rt, word_temp);
 					int_rt := to_integer(signed(word_temp));
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
-					hi := double_word_temp(31 downto 16);
-					lo := double_word_temp(15 downto 0);
+					hi := double_word_temp(63 downto 32);
+					lo := double_word_temp(31 downto 0);
 					
 				 WHEN SLT => 
 					read_register(rs, word_temp);
