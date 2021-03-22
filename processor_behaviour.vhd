@@ -42,8 +42,8 @@ BEGIN
 		--Set or clear condition codes based on given data
 		PROCEDURE set_clear_cc(data : IN integer; rd : OUT double_word) IS
 		
-		CONSTANT LOW  : integer := -2**(double_word_length-1);
-		CONSTANT HIGH : integer := 2**(double_word_length-1)-1;
+		CONSTANT LOW  : integer := -2**(word_length-1);
+		CONSTANT HIGH : integer := 2**(word_length-1)-1;
 		
 		BEGIN
 			IF (data<LOW) or (data>HIGH) THEN -- overflow
@@ -51,7 +51,7 @@ BEGIN
 				cc_v:='1'; cc_n:='-'; cc_z:='-'; rd:= DONTCARE;
 			ELSE
 				cc_v:='0'; cc_n:=BOOL2STD(data<0); cc_z:=BOOL2STD(data=0);
-				rd := std_logic_vector(to_signed(data,double_word_length));
+				rd := std_logic_vector(to_signed(data, word_length));
 			END IF;
 		END set_clear_cc;		
 		
@@ -194,21 +194,20 @@ BEGIN
 				 WHEN ANDOP =>
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
-					register_temp := rs_temp AND rt_temp;
-					--TODO: write to rd register
+					register_temp := rs_temp AND rt_temp;					
+					write_register(rd, register_temp);
 					
 				 WHEN OROP =>
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
 					register_temp := rs_temp OR rt_temp;
-					--TODO: write to rd register
+					write_register(rd, register_temp);
 					
 				 WHEN ORI=>
 						read_register(rs, rs_temp);
 						read_register(imm, imm_temp);
 						register_temp := rs_temp OR imm_temp;
-					--TODO: write to rd register
-					
+						write_register(rd, register_temp);
 
 				 WHEN ADD =>
 						read_register(rs,word_temp);
@@ -217,7 +216,7 @@ BEGIN
 						int_rt := to_integer(signed(word_temp));
 						int_temp := int_rs + int_rt;
 						register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
-						--TODO: write to rd register in suitable format
+						write_register(rd, register_temp);
 						
 				 WHEN ADDI =>
 						read_register(rs,word_temp);
@@ -225,11 +224,16 @@ BEGIN
 						read_register(imm,double_word_temp);
 				      int_imm := to_integer(signed(double_word_temp));
 						int_temp := int_rs + int_imm;
-						--TODO: write to rd register in suitable format
+						write_register(rd, register_temp);
 
 				 WHEN SUBOP => 
+						read_register(rs,word_temp);
+				      int_rs := to_integer(signed(word_temp));
+						read_register(rt,word_temp);
+						int_rt := to_integer(signed(word_temp));
 						int_temp := int_rs - int_rt;
-						--TODO: write to rd register
+						register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
+						write_register(rd, register_temp);
 				 
 				 WHEN DIV => 
 					read_register(rs, word_temp);
