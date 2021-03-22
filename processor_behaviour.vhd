@@ -141,6 +141,7 @@ BEGIN
 						read_register(rs, rs_temp);
 						read_register(imm, imm_temp);
 						register_temp := rs_temp OR imm_temp;
+					--TODO: write to rd register
 					
 
 				 WHEN ADD =>
@@ -149,6 +150,7 @@ BEGIN
 						read_register(rt,word_temp);
 						int_rt := to_integer(signed(word_temp));
 						int_temp := int_rs + int_rt;
+						register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
 						--TODO: write to rd register in suitable format
 						
 				 WHEN ADDI =>
