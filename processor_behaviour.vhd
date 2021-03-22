@@ -41,10 +41,9 @@ BEGIN
 		
 		--Needed funtions
 			--Writemem
-			--Write to internal reg
 			
 		--Set or clear condition codes based on given data
-		PROCEDURE set_clear_cc(data : IN integer; rd : OUT double_word) IS
+		PROCEDURE set_clear_cc(data : IN integer; rd : OUT word) IS
 		
 		CONSTANT LOW  : integer := -2**15;
 		CONSTANT HIGH : integer := 2**15-1;
@@ -60,15 +59,25 @@ BEGIN
 		END set_clear_cc;		
 		
 		--Read from internal register file
-		PROCEDURE read_register(reg_number : in bit5; output : out word) is
+		PROCEDURE read_register(reg_number : IN bit5; output : OUT word) IS
 		BEGIN
-			if((unsigned(reg_number)) > regfile'high) then
-				assert false report "Register out of bound" severity failure;
-			else
+			IF((unsigned(reg_number)) > regfile'high) THEN
+				ASSERT false REPORT "Register out of bound" SEVERITY failure;
+			ELSE
 				output := regfile(to_integer(unsigned(reg_number)));
-			end if;
+			END IF;
 		end read_register;
-
+		
+		--Write to internal register file
+		PROCEDURE write_register(reg_number : IN bit5; input : IN word) IS
+		BEGIN
+			IF((unsigned(reg_number)) > regfile'high) THEN
+				ASSERT false REPORT "Register out of bound" SEVERITY failure;
+			ELSE
+				regfile(to_integer(unsigned(reg_number))) := input;
+			END IF;
+		end write_register;
+		
 		--Read from given memory file
 		PROCEDURE read_memory (addr   : IN natural;
 										result : OUT double_word) IS
@@ -136,7 +145,7 @@ BEGIN
 		--
 		read_memory(pc,current_instr);
 		IF reset /= '1' THEN
-			 pc:=pc+1; -- TODO: shouldn't this be 4? at least that is mostly how it works with Assembly
+			 pc := pc + 4; -- how it works with Assembly
 			 --
 			 -- decode & execute
 			 -- 
@@ -225,7 +234,8 @@ BEGIN
 --				 WHEN SW => TODO
 					
 
-				 WHEN NOP => ASSERT false REPORT "finished calculation" SEVERITY failure;
+				 WHEN NOP => ASSERT false REPORT "Finished calculation" SEVERITY failure;
+				 WHEN OTHERS => ASSERT false REPORT "Illegal instruction" SEVERITY warning;
 			 END CASE;
 		END IF;
 	END PROCESS;
