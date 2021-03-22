@@ -120,7 +120,7 @@ BEGIN
 		END read_memory;                       
 		
 		--write to given memory file
-		PROCEDURE memory_write(address : IN natural; data : IN word) IS
+		PROCEDURE write_memory(address : IN natural; data : IN word) IS
 		BEGIN
 			-- put address on output
 			address_bus <= std_logic_vector(to_unsigned(address,word_length));
@@ -159,7 +159,7 @@ BEGIN
       write <= '0';
       output_bus <= DONTCARE;
       address_bus <= DONTCARE;
-    END memory_write;
+    END write_memory;
 			
 		--Processor loop:
 		BEGIN 
@@ -268,16 +268,29 @@ BEGIN
 						int_temp := 0;
 					END IF;
 
---				 WHEN LUI => TODO
-
---				 WHEN LW => TODO
+				WHEN LUI => 
+					read_register(rs, word_temp);
+					word_temp := (others =>'0');
+					word_temp(31 DOWNTO 16) := imm;
+					write_register(rt, word_temp);	
 					
+				WHEN LW => 
+					read_register(rs, word_temp);
+					int_rs := to_integer(signed(word_temp));
+					int_temp := int_rs+to_integer(signed(imm)); 
+               read_memory(int_temp, word_temp);
+               write_register(rt, word_temp);
 
---				 WHEN SW => TODO
+				WHEN SW => 
+					read_register(rs, word_temp);
+					int_rs := to_integer(signed(word_temp));
+					int_temp := int_rs+to_integer(signed(imm)); 
+					read_register(rt, word_temp);
+               write_memory(int_temp, word_temp);
 					
-
-				 WHEN NOP => ASSERT false REPORT "Finished calculation" SEVERITY failure;
-				 WHEN OTHERS => ASSERT false REPORT "Illegal instruction" SEVERITY warning;
+				WHEN NOP => ASSERT false REPORT "Finished calculation" SEVERITY failure;
+				
+				WHEN OTHERS => ASSERT false REPORT "Illegal instruction" SEVERITY warning;
 			 END CASE;
 		END IF;
 	END PROCESS;
