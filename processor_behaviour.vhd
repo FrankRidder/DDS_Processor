@@ -46,8 +46,8 @@ BEGIN
 		--Set or clear condition codes based on given data
 		PROCEDURE set_clear_cc(data : IN integer; rd : OUT double_word) IS
 		
-		CONSTANT LOW  : integer := -2**31;
-		CONSTANT HIGH : integer := 2**31-1;
+		CONSTANT LOW  : integer := -2**15;
+		CONSTANT HIGH : integer := 2**15-1;
 		
 		BEGIN
 			IF (data<LOW) or (data>HIGH) THEN -- overflow
