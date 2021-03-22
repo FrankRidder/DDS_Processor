@@ -26,8 +26,10 @@ BEGIN
 		VARIABLE hi : word;
 		VARIABLE rt_temp : word;
 		VARIABLE rs_temp : word;
+		VARIABLE imm_temp : double_word;
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
+		VARIABLE int_imm : integer;
 		VARIABLE word_temp   : word;
 		VARIABLE double_word_temp :double_word; --used for temporary 32 bit logic vectors
 		VARIABLE int_temp : integer;
@@ -127,11 +129,13 @@ BEGIN
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
 					register_temp := rs_temp AND rt_temp;
+					--TODO: write to rd register
 					
 				 WHEN OROP =>
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
 					register_temp := rs_temp OR rt_temp;
+					--TODO: write to rd register
 					
 --				 WHEN ORI=> TODO
 
@@ -141,10 +145,19 @@ BEGIN
 						read_register(rt,word_temp);
 						int_rt := to_integer(signed(word_temp));
 						int_temp := int_rs + int_rt;
-						--Write to register with write file
---				 WHEN ADDI =>	TODO	
+						--TODO: write to rd register in suitable format
+						
+				 WHEN ADDI =>
+						read_register(rs,word_temp);
+				      int_rs := to_integer(signed(word_temp));
+						read_register(imm,double_word_temp);
+				      int_imm := to_integer(signed(double_word_temp));
+						int_temp := int_rs + int_imm;
+						--TODO: write to rd register in suitable format
 
-				 WHEN SUBOP => int_temp := int_rs - int_rt;
+				 WHEN SUBOP => 
+						int_temp := int_rs - int_rt;
+						--TODO: write to rd register
 				 
 				 WHEN DIV => 
 					read_register(rs, word_temp);
@@ -182,8 +195,10 @@ BEGIN
 --				 WHEN LUI => TODO
 
 --				 WHEN LW => TODO
+					
 
---				 WHEN SW =>	TODO
+--				 WHEN SW => TODO
+					
 
 				 WHEN NOP => ASSERT false REPORT "finished calculation" SEVERITY failure;
 			 END CASE;
