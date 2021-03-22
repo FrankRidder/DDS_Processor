@@ -192,7 +192,7 @@ BEGIN
 				      int_rs := to_integer(signed(word_temp));
 						read_register(imm, imm_temp);
 						IF(int_rs = 0) THEN
-							pc := pc + imm_temp;
+							pc := pc + to_integer(signed(imm_temp));
 						END IF;
 
 				 WHEN BEQ => 
@@ -200,7 +200,7 @@ BEGIN
 						read_register(rt, rt_temp);
 						read_register(imm, imm_temp);
 						IF(rs_temp = rt_temp) THEN
-							pc := pc + imm_temp;
+							pc := pc + to_integer(signed(imm_temp));
 						END IF;
 
 				 WHEN ANDOP =>
@@ -256,9 +256,13 @@ BEGIN
 					hi := double_word_temp(63 downto 32);
 					lo := double_word_temp(31 downto 0);
 					
-				 WHEN MFLO => register_temp := lo;
+				 WHEN MFLO => 
+					register_temp := lo;
+					write_register(rd, register_temp);
 
-				 WHEN MFHI => register_temp := hi;
+				 WHEN MFHI => 
+					register_temp := hi;
+					write_register(rd, register_temp);
 
 				 WHEN MULT =>
 					read_register(rs, word_temp);
