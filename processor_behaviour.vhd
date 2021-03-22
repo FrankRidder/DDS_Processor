@@ -189,7 +189,7 @@ BEGIN
 --			 
 				 WHEN BGEZ =>
 					read_register(rs, rs_temp);
-					int_rs := to_integer(signed(word_temp));
+					int_rs := to_integer(signed(rs_temp));
 					read_register(imm, imm_temp);
 					IF(int_rs = 0) THEN
 						pc := pc + to_integer(signed(imm_temp));
@@ -222,36 +222,36 @@ BEGIN
 					write_register(rd, register_temp);
 
 				 WHEN ADD =>
-					read_register(rs,word_temp);
-					int_rs := to_integer(signed(word_temp));
-					read_register(rt,word_temp);
-					int_rt := to_integer(signed(word_temp));
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(rs_temp));
+					read_register(rt, rt_temp);
+					int_rt := to_integer(signed(rt_temp));
 					int_temp := int_rs + int_rt;
 					register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
 					write_register(rd, register_temp);
 						
 				 WHEN ADDI =>
-					read_register(rs,word_temp);
-					int_rs := to_integer(signed(word_temp));
-					read_register(imm,word_temp);
-					int_imm := to_integer(signed(word_temp));
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(rs_temp));
+					read_register(imm, imm_temp);
+					int_imm := to_integer(signed(imm_temp));
 					int_temp := int_rs + int_imm;
 					write_register(rd, register_temp);
 
 				 WHEN SUBOP => 
-					read_register(rs,word_temp);
-					int_rs := to_integer(signed(word_temp));
-					read_register(rt,word_temp);
-					int_rt := to_integer(signed(word_temp));
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(rs_temp));
+					read_register(rt, rt_temp);
+					int_rt := to_integer(signed(rt_temp));
 					int_temp := int_rs - int_rt;
 					register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
 					write_register(rd, register_temp);
 				 
 				 WHEN DIV => 
-					read_register(rs, word_temp);
-					int_rs := to_integer(signed(word_temp));
-					read_register(rt, word_temp);
-					int_rt := to_integer(signed(word_temp));
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(rs_temp));
+					read_register(rt, rt_temp);
+					int_rt := to_integer(signed(rt_temp));
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
 					hi := double_word_temp(63 downto 32);
 					lo := double_word_temp(31 downto 0);
@@ -265,19 +265,19 @@ BEGIN
 					write_register(rd, register_temp);
 
 				 WHEN MULT =>
-					read_register(rs, word_temp);
-					int_rs := to_integer(signed(word_temp));
-					read_register(rt, word_temp);
-					int_rt := to_integer(signed(word_temp));
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(rs_temp));
+					read_register(rt, rt_temp);
+					int_rt := to_integer(signed(rt_temp));
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
 					hi := double_word_temp(63 downto 32);
 					lo := double_word_temp(31 downto 0);
 					
 				 WHEN SLT => 
-					read_register(rs, word_temp);
-					int_rs := to_integer(signed(word_temp));
-					read_register(rt, word_temp);
-					int_rt := to_integer(signed(word_temp));
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(rs_temp));
+					read_register(rt, rt_temp);
+					int_rt := to_integer(signed(rt_temp));
 					IF(int_rs < int_rt) THEN
 						int_temp := 1;
 					ELSE
