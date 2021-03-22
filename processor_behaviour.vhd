@@ -8,14 +8,14 @@ BEGIN
 	PROCESS
 		--Needed internal memory
 		VARIABLE pc : natural;
-		VARIABLE current_instr:double_word;
+		VARIABLE current_instr:word;
 			ALIAS op  : bit6 IS current_instr(31 DOWNTO 26);
 			ALIAS rs : bit5 IS current_instr(25 DOWNTO 21);
 			ALIAS rt : bit5 IS current_instr(20 DOWNTO 16);
 			ALIAS rd : bit5 IS current_instr(15 DOWNTO 11);
 			ALIAS sa : bit5 IS current_instr(10 DOWNTO 6);
 			ALIAS func : bit6 IS current_instr(5 DOWNTO 0);
-			ALIAS imm : word IS current_instr( 15 DOWNTO 0);
+			ALIAS imm : halfword IS current_instr( 15 DOWNTO 0);
 		VARIABLE cc : bit3;
 			ALIAS cc_n  : std_logic IS cc(2);
 			ALIAS cc_z  : std_logic IS cc(1);
@@ -26,21 +26,21 @@ BEGIN
 		VARIABLE hi : word;
 		VARIABLE rt_temp : word;
 		VARIABLE rs_temp : word;
-		VARIABLE imm_temp : double_word;
+		VARIABLE imm_temp : halfword;
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
 		VARIABLE int_imm : integer;
 		VARIABLE word_temp   : word;
-		VARIABLE double_word_temp :double_word; --used for temporary 32 bit logic vectors
+		VARIABLE double_word_temp   : doubleword;
 		VARIABLE int_temp : integer;
 		
-		CONSTANT DONTCARE : double_word := (OTHERS => '-');
+		CONSTANT DONTCARE : word := (OTHERS => '-');
 
 		TYPE bool2std_logic_table IS ARRAY (boolean) OF std_logic;
 		CONSTANT BOOL2STD:bool2std_logic_table:=(false=>'0', true=>'1');
 			
 		--Set or clear condition codes based on given data
-		PROCEDURE set_clear_cc(data : IN integer; rd : OUT double_word) IS
+		PROCEDURE set_clear_cc(data : IN integer; rd : OUT word) IS
 		
 		CONSTANT LOW  : integer := -2**(word_length-1);
 		CONSTANT HIGH : integer := 2**(word_length-1)-1;
@@ -76,10 +76,10 @@ BEGIN
 		end write_register;
 		
 		--Read from given memory file
-		PROCEDURE read_memory (address : IN natural; result : OUT double_word) IS
+		PROCEDURE read_memory (address : IN natural; result : OUT word) IS
 		BEGIN
 			-- put address on output
-			address_bus <= std_logic_vector(to_unsigned(address,double_word_length));
+			address_bus <= std_logic_vector(to_unsigned(address,word_length));
 			WAIT UNTIL rising_edge(clk);
 			IF reset='1' THEN
 				  RETURN;
@@ -120,10 +120,10 @@ BEGIN
 		END read_memory;                       
 		
 		--write to given memory file
-		PROCEDURE memory_write(address : IN natural; data : IN double_word) IS
+		PROCEDURE memory_write(address : IN natural; data : IN word) IS
 		BEGIN
 			-- put address on output
-			address_bus <= std_logic_vector(to_unsigned(address,double_word_length));
+			address_bus <= std_logic_vector(to_unsigned(address,word_length));
 			WAIT UNTIL rising_edge(clk);
 			IF reset='1' THEN
 				RETURN;
@@ -221,8 +221,8 @@ BEGIN
 				 WHEN ADDI =>
 						read_register(rs,word_temp);
 				      int_rs := to_integer(signed(word_temp));
-						read_register(imm,double_word_temp);
-				      int_imm := to_integer(signed(double_word_temp));
+						read_register(imm,word_temp);
+				      int_imm := to_integer(signed(word_temp));
 						int_temp := int_rs + int_imm;
 						write_register(rd, register_temp);
 
