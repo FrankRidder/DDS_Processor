@@ -187,9 +187,21 @@ BEGIN
 			 -- 
 			 CASE op IS
 --			 
---				 WHEN BGEZ => TODO
+				 WHEN BGEZ =>
+						read_register(rs, rs_temp);
+				      int_rs := to_integer(signed(word_temp));
+						read_register(imm, imm_temp);
+						IF(int_rs = 0) THEN
+							pc := pc + imm_temp;
+						END IF;
 
---				 WHEN BEQ => TODO
+				 WHEN BEQ => 
+						read_register(rs, rs_temp);
+						read_register(rt, rt_temp);
+						read_register(imm, imm_temp);
+						IF(rs_temp = rt_temp) THEN
+							pc := pc + imm_temp;
+						END IF;
 
 				 WHEN ANDOP =>
 					read_register(rs, rs_temp);
