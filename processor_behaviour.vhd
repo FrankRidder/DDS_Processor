@@ -188,26 +188,26 @@ BEGIN
 			 CASE op IS
 --			 
 				 WHEN BGEZ =>
-						read_register(rs, rs_temp);
-				      int_rs := to_integer(signed(word_temp));
-						read_register(imm, imm_temp);
-						IF(int_rs = 0) THEN
-							pc := pc + to_integer(signed(imm_temp));
-						END IF;
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(word_temp));
+					read_register(imm, imm_temp);
+					IF(int_rs = 0) THEN
+						pc := pc + to_integer(signed(imm_temp));
+					END IF;
 
 				 WHEN BEQ => 
-						read_register(rs, rs_temp);
-						read_register(rt, rt_temp);
-						read_register(imm, imm_temp);
-						IF(rs_temp = rt_temp) THEN
-							pc := pc + to_integer(signed(imm_temp));
-						END IF;
-
-				 WHEN ANDOP =>
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
-					register_temp := rs_temp AND rt_temp;					
-					write_register(rd, register_temp);
+					read_register(imm, imm_temp);
+					IF(rs_temp = rt_temp) THEN
+						pc := pc + to_integer(signed(imm_temp));
+					END IF;
+
+				 WHEN ANDOP =>
+						read_register(rs, rs_temp);
+						read_register(rt, rt_temp);
+						register_temp := rs_temp AND rt_temp;					
+						write_register(rd, register_temp);
 					
 				 WHEN OROP =>
 					read_register(rs, rs_temp);
@@ -216,36 +216,36 @@ BEGIN
 					write_register(rd, register_temp);
 					
 				 WHEN ORI=>
-						read_register(rs, rs_temp);
-						read_register(imm, imm_temp);
-						register_temp := rs_temp OR imm_temp;
-						write_register(rd, register_temp);
+					read_register(rs, rs_temp);
+					read_register(imm, imm_temp);
+					register_temp := rs_temp OR imm_temp;
+					write_register(rd, register_temp);
 
 				 WHEN ADD =>
-						read_register(rs,word_temp);
-				      int_rs := to_integer(signed(word_temp));
-						read_register(rt,word_temp);
-						int_rt := to_integer(signed(word_temp));
-						int_temp := int_rs + int_rt;
-						register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
-						write_register(rd, register_temp);
+					read_register(rs,word_temp);
+					int_rs := to_integer(signed(word_temp));
+					read_register(rt,word_temp);
+					int_rt := to_integer(signed(word_temp));
+					int_temp := int_rs + int_rt;
+					register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
+					write_register(rd, register_temp);
 						
 				 WHEN ADDI =>
-						read_register(rs,word_temp);
-				      int_rs := to_integer(signed(word_temp));
-						read_register(imm,word_temp);
-				      int_imm := to_integer(signed(word_temp));
-						int_temp := int_rs + int_imm;
-						write_register(rd, register_temp);
+					read_register(rs,word_temp);
+					int_rs := to_integer(signed(word_temp));
+					read_register(imm,word_temp);
+					int_imm := to_integer(signed(word_temp));
+					int_temp := int_rs + int_imm;
+					write_register(rd, register_temp);
 
 				 WHEN SUBOP => 
-						read_register(rs,word_temp);
-				      int_rs := to_integer(signed(word_temp));
-						read_register(rt,word_temp);
-						int_rt := to_integer(signed(word_temp));
-						int_temp := int_rs - int_rt;
-						register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
-						write_register(rd, register_temp);
+					read_register(rs,word_temp);
+					int_rs := to_integer(signed(word_temp));
+					read_register(rt,word_temp);
+					int_rt := to_integer(signed(word_temp));
+					int_temp := int_rs - int_rt;
+					register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
+					write_register(rd, register_temp);
 				 
 				 WHEN DIV => 
 					read_register(rs, word_temp);
