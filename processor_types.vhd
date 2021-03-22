@@ -11,8 +11,8 @@ PACKAGE processor_types IS
   SUBTYPE bit3  IS std_logic_vector  (2 DOWNTO 0);
   TYPE register_file is array (0 to 31) of word;
   
-  CONSTANT double_word_length = 32;
-  CONSTANT word_length = 32;
+  CONSTANT double_word_length : integer := 32;
+  CONSTANT word_length : integer := 16;
 
   -- instruction set opcode
   CONSTANT BGEZ:     bit6:="000001"; 

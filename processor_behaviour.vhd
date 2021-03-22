@@ -48,7 +48,7 @@ BEGIN
 		BEGIN
 			IF (data<LOW) or (data>HIGH) THEN -- overflow
 				ASSERT false REPORT "overflow situation in arithmetic operation" SEVERITY note;
-				cc_v:='1'; cc_n:='-'; cc_z:='-'; rd:=(OTHERS=>'-');
+				cc_v:='1'; cc_n:='-'; cc_z:='-'; rd:= DONTCARE;
 			ELSE
 				cc_v:='0'; cc_n:=BOOL2STD(data<0); cc_z:=BOOL2STD(data=0);
 				rd := std_logic_vector(to_signed(data,double_word_length));
@@ -134,24 +134,24 @@ BEGIN
 					return;
 				END IF;
 				EXIT WHEN ready='0';
-				WAIT UNTIL rising_edge(clk)
+				WAIT UNTIL rising_edge(clk);
 			END LOOP;
 
       output_bus <= data;
-      WAIT UNTIL rising_edge(clk)
+      WAIT UNTIL rising_edge(clk);
       IF reset='1' THEN
         RETURN;
       END IF;  
       write <= '1';
 
       LOOP
-        WAIT UNTIL rising_edge(clk)
+        WAIT UNTIL rising_edge(clk);
         IF reset='1' THEN
           RETURN;
         END if;
         EXIT WHEN ready='1';  
       END LOOP;
-      WAIT UNTIL rising_edge(clk)
+      WAIT UNTIL rising_edge(clk);
       if reset='1' THEN
         RETURN;
       END if;
