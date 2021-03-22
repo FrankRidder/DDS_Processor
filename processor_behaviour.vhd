@@ -137,7 +137,11 @@ BEGIN
 					register_temp := rs_temp OR rt_temp;
 					--TODO: write to rd register
 					
---				 WHEN ORI=> TODO
+				 WHEN ORI=>
+						read_register(rs, rs_temp);
+						read_register(imm, imm_temp);
+						register_temp := rs_temp OR imm_temp;
+					
 
 				 WHEN ADD =>
 						read_register(rs,word_temp);
