@@ -33,12 +33,33 @@ BEGIN
 		VARIABLE word_temp   : word;
 		VARIABLE double_word_temp :double_word; --used for temporary 32 bit logic vectors
 		VARIABLE int_temp : integer;
+		
 		CONSTANT DONTCARE : double_word := (OTHERS => '-');
+
+		TYPE bool2std_logic_table IS ARRAY (boolean) OF std_logic;
+		CONSTANT BOOL2STD:bool2std_logic_table:=(false=>'0', true=>'1');
 		
 		--Needed funtions
 			--Writemem
 			--Write to internal reg
-			--Clear / set cc (condition codes)
+			
+		--Set or clear condition codes based on given data
+		PROCEDURE set_clear_cc(data : IN integer; rd : OUT double_word) IS
+		
+		CONSTANT LOW  : integer := -2**15;
+		CONSTANT HIGH : integer := 2**15-1;
+		
+		BEGIN
+			IF (data<LOW) or (data>HIGH) THEN -- overflow
+				ASSERT false REPORT "overflow situation in arithmetic operation" SEVERITY note;
+				cc_v:='1'; cc_n:='-'; cc_z:='-'; rd:=(OTHERS=>'-');
+			ELSE
+				cc_v:='0'; cc_n:=BOOL2STD(data<0); cc_z:=BOOL2STD(data=0);
+				rd := std_logic_vector(to_signed(data,32));
+			END IF;
+		END set_clear_cc;		
+		
+		--Read from internal register file
 		PROCEDURE read_register(reg_number : in bit5; output : out word) is
 		BEGIN
 			if((unsigned(reg_number)) > regfile'high) then
@@ -48,50 +69,50 @@ BEGIN
 			end if;
 		end read_register;
 
-			
+		--Read from given memory file
 		PROCEDURE read_memory (addr   : IN natural;
 										result : OUT double_word) IS
 		BEGIN
-				-- put address on output
-				adress_bus <= std_logic_vector(to_unsigned(addr,32));
+			-- put address on output
+			adress_bus <= std_logic_vector(to_unsigned(addr,32));
+			WAIT UNTIL rising_edge(clk);
+			IF reset='1' THEN
+				  RETURN;
+			END IF;
+
+			LOOP -- ready must be low (handshake)
+				IF reset='1' THEN
+					 RETURN;
+				END IF;
+				EXIT WHEN ready='0';
+				WAIT UNTIL rising_edge(clk);
+			END LOOP;
+
+			read <= '1';
+			WAIT UNTIL rising_edge(clk);
+			IF reset='1' THEN
+				  RETURN;
+			END IF;
+
+			LOOP
 				WAIT UNTIL rising_edge(clk);
 				IF reset='1' THEN
-				  RETURN;
+					 RETURN;
 				END IF;
 
-				LOOP -- ready must be low (handshake)
-				  IF reset='1' THEN
-					 RETURN;
-				  END IF;
-				  EXIT WHEN ready='0';
-				  WAIT UNTIL rising_edge(clk);
-				END LOOP;
-
-				read <= '1';
-				WAIT UNTIL rising_edge(clk);
-				IF reset='1' THEN
-				  RETURN;
-				END IF;
-
-				LOOP
-				  WAIT UNTIL rising_edge(clk);
-				  IF reset='1' THEN
-					 RETURN;
-				  END IF;
-
-				  IF ready='1' THEN
+				IF ready='1' THEN
 					 result:=input_bus;
 					 EXIT;
-				  END IF;    
-				END LOOP;
-				WAIT UNTIL rising_edge(clk);
-				IF reset='1' THEN
+				END IF;    
+			END LOOP;
+			WAIT UNTIL rising_edge(clk);
+			IF reset='1' THEN
 				  RETURN;
-				END IF;
+			END IF;
 
-				read <= '0'; 
-				adress_bus <= DONTCARE;
-		 END read_memory;                       
+			read <= '0'; 
+			adress_bus <= DONTCARE;
+		END read_memory;                       
 
 			
 			
