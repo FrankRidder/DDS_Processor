@@ -192,17 +192,22 @@ BEGIN
 					int_rs := to_integer(signed(rs_temp));
 					read_register(imm, imm_temp);
 					IF(int_rs = 0) THEN
+						cc_z := '1';
 						pc := pc + to_integer(signed(imm_temp));
+					ELSE 
+						cc_z := '0';
 					END IF;
-
 				 WHEN BEQ => 
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
 					read_register(imm, imm_temp);
 					IF(rs_temp = rt_temp) THEN
+						cc_v := '1';
 						pc := pc + to_integer(signed(imm_temp));
+					ELSE 
+						cc_v := '0';
 					END IF;
-
+					
 				 WHEN ANDOP =>
 						read_register(rs, rs_temp);
 						read_register(rt, rt_temp);
@@ -227,7 +232,7 @@ BEGIN
 					read_register(rt, rt_temp);
 					int_rt := to_integer(signed(rt_temp));
 					int_temp := int_rs + int_rt;
-					register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
+					set_clear_cc(int_temp, register_temp);
 					write_register(rd, register_temp);
 						
 				 WHEN ADDI =>
@@ -236,6 +241,7 @@ BEGIN
 					read_register(imm, imm_temp);
 					int_imm := to_integer(signed(imm_temp));
 					int_temp := int_rs + int_imm;
+					set_clear_cc(int_temp, register_temp);
 					write_register(rd, register_temp);
 
 				 WHEN SUBOP => 
@@ -244,7 +250,7 @@ BEGIN
 					read_register(rt, rt_temp);
 					int_rt := to_integer(signed(rt_temp));
 					int_temp := int_rs - int_rt;
-					register_temp := std_logic_vector(to_signed(int_temp, register_temp'length));
+					set_clear_cc(int_temp, register_temp);
 					write_register(rd, register_temp);
 				 
 				 WHEN DIV => 
