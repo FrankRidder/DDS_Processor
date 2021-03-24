@@ -171,8 +171,11 @@ BEGIN
 			write <= '0';
 			pc := 0;
 			cc := "000"; -- clear condition code register
+			regfile := (others => (others => '0'));
+			lo := (others => '0');
+			hi := (others => '0');
 			LOOP         -- synchrone reset
-				 WAIT UNTIL rising_edge(clk);
+				 WAIT UNTIL clk = '1';
 				 EXIT WHEN reset='0';
 			END LOOP;
 		END IF;
@@ -197,6 +200,7 @@ BEGIN
 					ELSE 
 						cc_z := '0';
 					END IF;
+					WAIT UNTIL rising_edge(clk);
 				 WHEN BEQ => 
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
@@ -207,25 +211,25 @@ BEGIN
 					ELSE 
 						cc_v := '0';
 					END IF;
-					
+					WAIT UNTIL rising_edge(clk);
 				 WHEN ANDOP =>
-						read_register(rs, rs_temp);
-						read_register(rt, rt_temp);
-						register_temp := rs_temp AND rt_temp;					
-						write_register(rd, register_temp);
-					
+					read_register(rs, rs_temp);
+					read_register(rt, rt_temp);
+					register_temp := rs_temp AND rt_temp;					
+					write_register(rd, register_temp);
+					WAIT UNTIL rising_edge(clk);
 				 WHEN OROP =>
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
 					register_temp := rs_temp OR rt_temp;
 					write_register(rd, register_temp);
-					
+					WAIT UNTIL rising_edge(clk);
 				 WHEN ORI=>
 					read_register(rs, rs_temp);
 					read_register(imm, imm_temp);
 					register_temp := rs_temp OR imm_temp;
 					write_register(rd, register_temp);
-
+					WAIT UNTIL rising_edge(clk);
 				 WHEN ADD =>
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));
@@ -234,7 +238,7 @@ BEGIN
 					int_temp := int_rs + int_rt;
 					set_clear_cc(int_temp, register_temp);
 					write_register(rd, register_temp);
-						
+					WAIT UNTIL rising_edge(clk);
 				 WHEN ADDI =>
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));
@@ -243,7 +247,7 @@ BEGIN
 					int_temp := int_rs + int_imm;
 					set_clear_cc(int_temp, register_temp);
 					write_register(rd, register_temp);
-
+					WAIT UNTIL rising_edge(clk);
 				 WHEN SUBOP => 
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));
@@ -252,7 +256,7 @@ BEGIN
 					int_temp := int_rs - int_rt;
 					set_clear_cc(int_temp, register_temp);
 					write_register(rd, register_temp);
-				 
+					WAIT UNTIL rising_edge(clk);
 				 WHEN DIV => 
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));
@@ -261,15 +265,15 @@ BEGIN
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
 					hi := double_word_temp(63 downto 32);
 					lo := double_word_temp(31 downto 0);
-					
+					WAIT UNTIL rising_edge(clk);
 				 WHEN MFLO => 
 					register_temp := lo;
 					write_register(rd, register_temp);
-
+					WAIT UNTIL rising_edge(clk);
 				 WHEN MFHI => 
 					register_temp := hi;
 					write_register(rd, register_temp);
-
+					WAIT UNTIL rising_edge(clk);
 				 WHEN MULT =>
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));
@@ -278,7 +282,7 @@ BEGIN
 					double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
 					hi := double_word_temp(63 downto 32);
 					lo := double_word_temp(31 downto 0);
-					
+					WAIT UNTIL rising_edge(clk);
 				 WHEN SLT => 
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));
@@ -289,30 +293,31 @@ BEGIN
 					ELSE
 						int_temp := 0;
 					END IF;
-
+					WAIT UNTIL rising_edge(clk);
 				WHEN LUI => 
 					read_register(rs, word_temp);
 					word_temp := (others =>'0');
 					word_temp(31 DOWNTO 16) := imm;
 					write_register(rt, word_temp);	
-					
+					WAIT UNTIL rising_edge(clk);
 				WHEN LW => 
 					read_register(rs, word_temp);
 					int_rs := to_integer(signed(word_temp));
 					int_temp := int_rs+to_integer(signed(imm)); 
                read_memory(int_temp, word_temp);
                write_register(rt, word_temp);
-
+					WAIT UNTIL rising_edge(clk);
 				WHEN SW => 
 					read_register(rs, word_temp);
 					int_rs := to_integer(signed(word_temp));
 					int_temp := int_rs+to_integer(signed(imm)); 
 					read_register(rt, word_temp);
                write_memory(int_temp, word_temp);
-					
+					WAIT UNTIL rising_edge(clk);
 				WHEN NOP => ASSERT false REPORT "Finished calculation" SEVERITY failure;
-				
+					WAIT UNTIL rising_edge(clk);
 				WHEN OTHERS => ASSERT false REPORT "Illegal instruction" SEVERITY warning;
+					WAIT UNTIL rising_edge(clk);
 			 END CASE;
 		END IF;
 	END PROCESS;

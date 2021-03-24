@@ -2,7 +2,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 PACKAGE processor_types IS
-  SUBTYPE doubleword IS std_logic_vector (31 DOWNTO 0);
+  SUBTYPE doubleword IS std_logic_vector (63 DOWNTO 0);
   SUBTYPE word IS std_logic_vector (31 DOWNTO 0);
   SUBTYPE halfword IS std_logic_vector (15 DOWNTO 0);
   SUBTYPE bit8  IS std_logic_vector  (7 DOWNTO 0);
@@ -23,7 +23,7 @@ PACKAGE processor_types IS
   CONSTANT ANDOP:    bit6:="100100"; --AND is reserved
   CONSTANT OROP:     bit6:="100101"; --OR is reserved  
   CONSTANT ORI:      bit6:="001101";   
-  CONSTANT ADD:      bit6:="100100"; 
+  CONSTANT ADD:      bit6:="100000"; 
   CONSTANT ADDI:     bit6:="001100"; 
   CONSTANT SUBOP:    bit6:="100010"; 
   CONSTANT DIV:      bit6:="011010"; 

@@ -54,3 +54,13 @@ mips_processor.qpf
 mips_processor.qsf
 
 cr_ie_info.json
+
+work/_info
+
+*.qdb
+
+work/_lib1_0.qpg
+
+*.qtl
+
+work/_vmake
