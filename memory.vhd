@@ -64,50 +64,30 @@ BEGIN
     VARIABLE prg:text_segment:=
            (
 -- Code         Basic                      Source
-"04010013", --  bgez $0,19            21   b	ser # branch always to ser; is assembled to: bgez $0, ser
-"34070001", --  ori $7,$0,1           26   xn:	ori $7, $0, 1    # res
-"0005082a", --  slt $1,$0,$5          27   nxt:	ble $5, $0, fexp # if [R5]<=[$0] branch; assembled to slt $1, $0, %5 and beq $1, $0, fexp
-"10200005", --  beq $1,$0,5                
-"00e60018", --  mult $7,$6            28   	mult $7, $6      # LO=res * x
-"00003812", --  mflo $7               29   	mflo $7          # res=res * x
-"200f0001", --  addi $15,$0,1         30   	addi $15, $0, 1
-"00af2822", --  sub $5,$5,$15         31   	sub $5, $5, $15  # n=n-1
-"0401fff9", --  bgez $0,-7            32   	b nxt
-"04010015", --  bgez $0,21            33   fexp:	b fxn
-"34090001", --  ori $9,$0,1           38   f:	ori $9, $0, 1    # res
-"200f0001", --  addi $15,$0,1         39   nfac:	addi $15, $0, 1
-"0008082a", --  slt $1,$0,$8          40   	ble $8, $0, ffac # branch if [$8]<=[$0]; assembled to slt and beq
-"10200005", --  beq $1,$0,5                
-"01280018", --  mult $9,$8            41   	mult $9, $8      # res=res*n
-"00004812", --  mflo $9               42   	mflo $9
-"200f0001", --  addi $15,$0,1         43   	addi $15, $0, 1
-"010f4022", --  sub $8,$8,$15         44   	sub $8, $8, $15  # n=n-1	
-"0401fff8", --  bgez $0,-8            45   	b nfac           
-"04010010", --  bgez $0,16            46   ffac:	b ff
-"3c011001", --  lui $1,4097           50     lw $10, N              # number of terms; assembled in LUI and LW (this depends on location of N)
-"8c2a0000", --  lw $10,0($1)               
-"3c011001", --  lui $1,4097           51     lw $13, X              # value x
-"8c2d0004", --  lw $13,4($1)               
-"340b0001", --  ori $11,$0,1          52   	ori $11, $0, 1    # index
-"340c03e8", --  ori $12,$0,1000       53   	ori $12, $0, 1000 # approximation exp (first term always 1) (multiplied with 1000)
-"016a082a", --  slt $1,$11,$10        57   ntrm:	ble $10, $11, rdy	
-"1020000d", --  beq $1,$0,13               
-"000b2825", --  or $5,$0,$11          58   	or $5, $0, $11    # calculate x^n
-"000d3025", --  or $6,$0,$13          59   	or $6, $0, $13
-"0401ffe2", --  bgez $0,-30           60   	b xn    # branch always to xn; calculate x^n
-"200f03e8", --  addi $15,$0,1000      62   	addi $15, $0, 1000
-"00ef0018", --  mult $7,$15           63   	mult $7, $15      # LO=multiply with 1000
-"00003812", --  mflo $7               64   	mflo $7
-"000b4025", --  or $8,$0,$11          65   	or $8, $0, $11 
-"0401ffe6", --  bgez $0,-26           66   	b f               # branch always to f; calculate n!
-"00e9001a", --  div $7,$9             68   	div  $7, $9       # 100"2^n/n! in $14
-"00007012", --  mflo $14              69   	mflo $14
-"018e6020", --  add $12,$12,$14       70   	add $12, $12, $14 # sn=s(n-1)+term
-"216b0001", --  addi $11,$11,1        71   	add $11, $11, 1   # i++
-"0401fff1", --  bgez $0,-15           72   	b ntrm  # branch always to ntrm
-"3c011001", --  lui $1,4097           73   rdy:	sw $12,EX # e^x in EX
-"ac2c0008", --  sw $12,8($1)               
-"00000000", --  nop                   74   	nop           
+"3c011001",--lui $1,0x00001001     5    lw $10, Val
+"8c2a0000",--lw $10,0x00000000($1)
+"20040004",--addi $4,$0,0x00000004 8    addi $4, $0, 4 #place 4+0 in register 4
+"20010001",--addi $1,$0,0x00000001 9    addi $1, $0, 1 #place 4+0 in register 4
+"00844020",--add $8,$4,$4          10   add $8, $4, $4 #place 4+4 in register 8
+"00881825",--or $3,$4,$8           12   or $3, $4, $8 #logic or between 4 and 8 placed in 3
+"3485000c",--ori $5,$4,0x0000000c  13   ori $5, $4 , 12 #logic or between 4 and 12 placed in register 5
+"01040018",--mult $8,$4            14   mult $8, $4 #multiply 8 by 4, 32 MSB in HI, 32 LSB in LO
+"01042822",--sub $5,$8,$4          15   sub $5, $8, $4 #substract 4 from 8 and place it in 5
+"0104001a",--div $8,$4             16   div $8, $4 #divide 8 by 4, 32 MSB in HI, 32 LSB in LO
+"00003012",--mflo $6               17   mflo $6 #put HI in 6
+"00003810",--mfhi $7               18   mfhi $7 #put LO in 7
+"3c0c000a",--lui $12,0x0000000a    19   lui $12, 10
+"0088682a",--slt $13,$4,$8         20   slt $13, $4, $8 #if $4 < $8 than  $13 = 1 else 0
+"01404020",--add $8,$10,$0         22   add $8, $10, $0 #register 8 is 10
+"01014022",--sub $8,$8,$1          24   sub $8, $8, $1  #register 8 --
+"0501fffe",--bgez $8,0xfffffffe    25   bgez $8, Loop
+"11040003",--beq $8,$4,0x00000003  28   beq $8, $4 four #if register 8 is 4 goto four
+"3c011001",--lui $1,0x00001001     30   sw $8, X #X = 8
+"ac280000",--sw $8,0x00000000($1)
+"11000002",--beq $8,$0,0x00000002  31   beq $8 $0 end #if register 8 is 0 foto end
+"3c011001",--lui $1,0x00001001     34   sw $4, X #X = 4
+"ac240000",--sw $4,0x00000000($1)
+"00000000",--nop                   37   nop        
 OTHERS => "00000000" 
             );
   
