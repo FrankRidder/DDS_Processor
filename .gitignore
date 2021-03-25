@@ -64,3 +64,5 @@ work/_lib1_0.qpg
 *.qtl
 
 work/_vmake
+
+*.qpg
