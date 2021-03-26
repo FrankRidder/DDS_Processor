@@ -6,3 +6,8 @@ vcom -quiet processor_behaviour.vhd
 vcom -quiet memory_config.vhd
 vcom -quiet memory.vhd
 vcom -quiet testbench.vhd
+
+vsim work.testbench
+
+add wave *
+run 2000ns

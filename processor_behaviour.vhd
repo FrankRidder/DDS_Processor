@@ -30,7 +30,6 @@ BEGIN
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
 		VARIABLE int_imm : integer;
-		VARIABLE word_temp   : word;
 		VARIABLE double_word_temp   : doubleword;
 		VARIABLE int_temp : integer;
 		
@@ -193,21 +192,21 @@ BEGIN
 				 WHEN BGEZ =>
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));
-					read_register(imm, imm_temp);
 					IF(int_rs = 0) THEN
 						cc_z := '1';
-						pc := pc + to_integer(signed(imm_temp));
+						cc_v := '1';
+						pc := pc + to_integer(signed(imm));
 					ELSE 
+						cc_v := '0';
 						cc_z := '0';
 					END IF;
 					WAIT UNTIL rising_edge(clk);
 				 WHEN BEQ => 
 					read_register(rs, rs_temp);
 					read_register(rt, rt_temp);
-					read_register(imm, imm_temp);
 					IF(rs_temp = rt_temp) THEN
 						cc_v := '1';
-						pc := pc + to_integer(signed(imm_temp));
+						pc := pc + to_integer(signed(imm));
 					ELSE 
 						cc_v := '0';
 					END IF;
@@ -226,8 +225,10 @@ BEGIN
 					WAIT UNTIL rising_edge(clk);
 				 WHEN ORI=>
 					read_register(rs, rs_temp);
-					read_register(imm, imm_temp);
-					register_temp := rs_temp OR imm_temp;
+					--Use as temp 32 bit vector to zero extend the imm value
+					rt_temp := (others=> '0');
+               rt_temp(15 downto 0) := imm;
+					register_temp := rs_temp OR rt_temp;
 					write_register(rd, register_temp);
 					WAIT UNTIL rising_edge(clk);
 				 WHEN ADD =>
@@ -242,8 +243,7 @@ BEGIN
 				 WHEN ADDI =>
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));
-					read_register(imm, imm_temp);
-					int_imm := to_integer(signed(imm_temp));
+					int_imm := to_integer(signed(imm));
 					int_temp := int_rs + int_imm;
 					set_clear_cc(int_temp, register_temp);
 					write_register(rd, register_temp);
@@ -295,24 +295,24 @@ BEGIN
 					END IF;
 					WAIT UNTIL rising_edge(clk);
 				WHEN LUI => 
-					read_register(rs, word_temp);
-					word_temp := (others =>'0');
-					word_temp(31 DOWNTO 16) := imm;
-					write_register(rt, word_temp);	
+					read_register(rs, rs_temp);
+					rs_temp := (others =>'0');
+					rs_temp(31 DOWNTO 16) := imm;
+					write_register(rt, rs_temp);	
 					WAIT UNTIL rising_edge(clk);
 				WHEN LW => 
-					read_register(rs, word_temp);
-					int_rs := to_integer(signed(word_temp));
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(rs_temp));
 					int_temp := int_rs+to_integer(signed(imm)); 
-               read_memory(int_temp, word_temp);
-               write_register(rt, word_temp);
+               read_memory(int_temp, rt_temp);
+               write_register(rt, rt_temp);
 					WAIT UNTIL rising_edge(clk);
 				WHEN SW => 
-					read_register(rs, word_temp);
-					int_rs := to_integer(signed(word_temp));
+					read_register(rs, rs_temp);
+					int_rs := to_integer(signed(rs_temp));
 					int_temp := int_rs+to_integer(signed(imm)); 
-					read_register(rt, word_temp);
-               write_memory(int_temp, word_temp);
+					read_register(rt, rt_temp);
+               write_memory(int_temp, rt_temp);
 					WAIT UNTIL rising_edge(clk);
 				WHEN NOP => ASSERT false REPORT "Finished calculation" SEVERITY failure;
 					WAIT UNTIL rising_edge(clk);

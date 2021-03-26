@@ -63,32 +63,32 @@ BEGIN
        
     VARIABLE prg:text_segment:=
            (
--- Code         Basic                      Source
-"3c011001",--lui $1,0x00001001     5    lw $10, Val
-"8c2a0000",--lw $10,0x00000000($1)
-"20040004",--addi $4,$0,0x00000004 8    addi $4, $0, 4 #place 4+0 in register 4
-"20010001",--addi $1,$0,0x00000001 9    addi $1, $0, 1 #place 4+0 in register 4
-"00844020",--add $8,$4,$4          10   add $8, $4, $4 #place 4+4 in register 8
-"00881825",--or $3,$4,$8           12   or $3, $4, $8 #logic or between 4 and 8 placed in 3
-"3485000c",--ori $5,$4,0x0000000c  13   ori $5, $4 , 12 #logic or between 4 and 12 placed in register 5
-"01040018",--mult $8,$4            14   mult $8, $4 #multiply 8 by 4, 32 MSB in HI, 32 LSB in LO
-"01042822",--sub $5,$8,$4          15   sub $5, $8, $4 #substract 4 from 8 and place it in 5
-"0104001a",--div $8,$4             16   div $8, $4 #divide 8 by 4, 32 MSB in HI, 32 LSB in LO
-"00003012",--mflo $6               17   mflo $6 #put HI in 6
-"00003810",--mfhi $7               18   mfhi $7 #put LO in 7
-"3c0c000a",--lui $12,0x0000000a    19   lui $12, 10
-"0088682a",--slt $13,$4,$8         20   slt $13, $4, $8 #if $4 < $8 than  $13 = 1 else 0
-"01404020",--add $8,$10,$0         22   add $8, $10, $0 #register 8 is 10
-"01014022",--sub $8,$8,$1          24   sub $8, $8, $1  #register 8 --
-"0501fffe",--bgez $8,0xfffffffe    25   bgez $8, Loop
-"11040003",--beq $8,$4,0x00000003  28   beq $8, $4 four #if register 8 is 4 goto four
-"3c011001",--lui $1,0x00001001     30   sw $8, X #X = 8
-"ac280000",--sw $8,0x00000000($1)
-"11000002",--beq $8,$0,0x00000002  31   beq $8 $0 end #if register 8 is 0 foto end
-"3c011001",--lui $1,0x00001001     34   sw $4, X #X = 4
-"ac240000",--sw $4,0x00000000($1)
-"00000000",--nop                   37   nop        
-OTHERS => "00000000" 
+				-- Code         Basic                      Source
+				"3c011001",--lui $1,0x00001001     5    lw $10, Val
+				"8c2a0000",--lw $10,0x00000000($1)
+				"20040004",--addi $4,$0,0x00000004 8    addi $4, $0, 4 #place 4+0 in register 4
+				"20010001",--addi $1,$0,0x00000001 9    addi $1, $0, 1 #place 4+0 in register 4
+				"00844020",--add $8,$4,$4          10   add $8, $4, $4 #place 4+4 in register 8
+				"00881825",--or $3,$4,$8           12   or $3, $4, $8 #logic or between 4 and 8 placed in 3
+				"3485000c",--ori $5,$4,0x0000000c  13   ori $5, $4 , 12 #logic or between 4 and 12 placed in register 5
+				"01040018",--mult $8,$4            14   mult $8, $4 #multiply 8 by 4, 32 MSB in HI, 32 LSB in LO
+				"01042822",--sub $5,$8,$4          15   sub $5, $8, $4 #substract 4 from 8 and place it in 5
+				"0104001a",--div $8,$4             16   div $8, $4 #divide 8 by 4, 32 MSB in HI, 32 LSB in LO
+				"00003012",--mflo $6               17   mflo $6 #put HI in 6
+				"00003810",--mfhi $7               18   mfhi $7 #put LO in 7
+				"3c0c000a",--lui $12,0x0000000a    19   lui $12, 10
+				"0088682a",--slt $13,$4,$8         20   slt $13, $4, $8 #if $4 < $8 than  $13 = 1 else 0
+				"01404020",--add $8,$10,$0         22   add $8, $10, $0 #register 8 is 10
+				"01014022",--sub $8,$8,$1          24   sub $8, $8, $1  #register 8 --
+				"0501fffe",--bgez $8,0xfffffffe    25   bgez $8, Loop
+				"11040003",--beq $8,$4,0x00000003  28   beq $8, $4 four #if register 8 is 4 goto four
+				"3c011001",--lui $1,0x00001001     30   sw $8, X #X = 8
+				"ac280000",--sw $8,0x00000000($1)
+				"11000002",--beq $8,$0,0x00000002  31   beq $8 $0 end #if register 8 is 0 foto end
+				"3c011001",--lui $1,0x00001001     34   sw $4, X #X = 4
+				"ac240000",--sw $4,0x00000000($1)
+				"00000000",--nop                   37   nop        
+				OTHERS => "00000000" 
             );
   
     VARIABLE data:data_segment:=
