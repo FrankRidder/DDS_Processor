@@ -2,6 +2,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 USE work.processor_types.ALL;
+USE work.memory_config.ALL;
 
 ARCHITECTURE behaviour OF mips_processor  IS
 BEGIN
@@ -26,7 +27,6 @@ BEGIN
 		VARIABLE hi : word;
 		VARIABLE rt_temp : word;
 		VARIABLE rs_temp : word;
-		VARIABLE imm_temp : halfword;
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
 		VARIABLE int_imm : integer;
@@ -168,27 +168,34 @@ BEGIN
 		IF reset='1' THEN
 			read <= '0';
 			write <= '0';
-			pc := 0;
+			output_bus <= (others => '0');
+			address_bus <= (others => '0');
+			pc := text_base_address;
+		   int_rs := 0; 
+			int_rt := 0; 
+			int_imm := 0; 
+			int_temp := 0; 
 			cc := "000"; -- clear condition code register
 			regfile := (others => (others => '0'));
 			lo := (others => '0');
 			hi := (others => '0');
+			rt_temp := (others => '0');
+			rs_temp := (others => '0');
+			double_word_temp := (others => '0');
+			current_instr := (others => '0');
+			
 			LOOP         -- synchrone reset
-				 WAIT UNTIL clk = '1';
+				 WAIT UNTIL rising_edge(clk);
 				 EXIT WHEN reset='0';
 			END LOOP;
-		END IF;
-		--
-	   -- fetch next instruction
-		--
-		read_memory(pc,current_instr);
-		IF reset /= '1' THEN
-			 pc := pc + 4; -- how it works with Assembly
-			 --
-			 -- decode & execute
-			 -- 
-			 CASE op IS
---			 
+		ELSE
+			-- fetch next instruction
+			read_memory(pc,current_instr);
+			assert false report "Read new opperation" severity note;
+
+			pc := pc + 4; 
+
+			CASE op IS 
 				 WHEN BGEZ =>
 					read_register(rs, rs_temp);
 					int_rs := to_integer(signed(rs_temp));

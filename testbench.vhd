@@ -17,8 +17,8 @@ architecture behaviour of testbench is
 	end component;
 
 	component mips_processor port (
-		output_bus : OUT word;
 		input_bus  : IN word;
+		output_bus : OUT word;
 		address_bus : OUT word;
 		clk : IN std_logic;
 		write : OUT  std_ulogic;
@@ -27,15 +27,15 @@ architecture behaviour of testbench is
 		reset : IN std_logic);
 	end component;
 
-	signal input_bus,output_bus,address_bus : word;
+	signal inputcpu_bus,outputcpu_bus,address_bus : word;
 	signal read,write,ready               : std_ulogic;
 	signal reset                          : std_ulogic := '1';
 	signal clk                            : std_ulogic := '0';
 	begin
 		cpu:mips_processor
-			port map(input_bus,output_bus,address_bus,clk,write,read,ready,reset);
+			port map(inputcpu_bus,outputcpu_bus,address_bus,clk,write,read,ready,reset);
 		mem:memory
-			port map(input_bus,output_bus,address_bus,clk,write,read,ready);
+			port map(inputcpu_bus,outputcpu_bus,address_bus,clk,write,read,ready);
 	reset <= '1', '0' after 100 ns;
 	clk   <= not clk after 10 ns;
 end behaviour;

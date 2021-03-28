@@ -4,8 +4,8 @@ USE work.processor_types.ALL;
 
 ENTITY mips_processor IS
   PORT (
+  		input_bus  : IN word;
 		output_bus : OUT word;
-		input_bus  : IN word;
 		address_bus : OUT word;
 		clk : IN std_logic;
 		write : OUT  std_ulogic;

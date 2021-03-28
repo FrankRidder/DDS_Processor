@@ -1,3 +1,4 @@
+clean
 vlib work
 
 vcom -quiet processor_types.vhd
@@ -10,4 +11,4 @@ vcom -quiet testbench.vhd
 vsim work.testbench
 
 add wave *
-run 2000ns
+run 1000ns

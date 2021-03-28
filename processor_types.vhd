@@ -24,7 +24,7 @@ PACKAGE processor_types IS
   CONSTANT OROP:     bit6:="100101"; --OR is reserved  
   CONSTANT ORI:      bit6:="001101";   
   CONSTANT ADD:      bit6:="100000"; 
-  CONSTANT ADDI:     bit6:="001100"; 
+  CONSTANT ADDI:     bit6:="001000"; 
   CONSTANT SUBOP:    bit6:="100010"; 
   CONSTANT DIV:      bit6:="011010"; 
   CONSTANT MFLO:     bit6:="010010"; 
