@@ -18,23 +18,29 @@ PACKAGE processor_types IS
   
 
   -- instruction set opcode
+  CONSTANT RTYPE:		bit6:="000000";
   CONSTANT BGEZ:     bit6:="000001"; 
   CONSTANT BEQ:      bit6:="000100"; 
-  CONSTANT ANDOP:    bit6:="100100"; --AND is reserved
-  CONSTANT OROP:     bit6:="100101"; --OR is reserved  
-  CONSTANT ORI:      bit6:="001101";   
-  CONSTANT ADD:      bit6:="100000"; 
-  CONSTANT ADDI:     bit6:="001000"; 
-  CONSTANT SUBOP:    bit6:="100010"; 
-  CONSTANT DIV:      bit6:="011010"; 
-  CONSTANT MFLO:     bit6:="010010"; 
-  CONSTANT MFHI:     bit6:="010000"; 
-  CONSTANT MULT:     bit6:="011000";
-  CONSTANT SLT:      bit6:="101010";
+  CONSTANT ORI:      bit6:="001101";
+  CONSTANT ADDI:     bit6:="001000";  
   CONSTANT LUI:      bit6:="001111";
   CONSTANT LW:       bit6:="100011";
   CONSTANT SW:       bit6:="101011";
-  CONSTANT NOP:      bit6:="000000";
+  
+  --function code of opcode R-Type
+  CONSTANT ANDOP:    bit6:="100100"; --AND is reserved
+  CONSTANT OROP:     bit6:="100101"; --OR is reserved     
+  CONSTANT ADD:      bit6:="100000"; 
+  CONSTANT SUBOP:    bit6:="100010"; 
+  CONSTANT DIV:      bit6:="011010"; 
+  CONSTANT MFLO:     bit6:="010010"; 
+  CONSTANT MFHI:     bit6:="010000";
+  CONSTANT MULT:     bit6:="011000";
+  CONSTANT SLT:      bit6:="101010";
+  
+  --nop instruction
+  CONSTANT NOP:      word:="00000000000000000000000000000000";
+  
  
   
 END processor_types;
