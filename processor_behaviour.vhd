@@ -272,7 +272,7 @@ BEGIN
 								WAIT UNTIL rising_edge(clk);
 					 END CASE;
 					 
-					 WHEN BGEZ =>
+					WHEN BGEZ =>
 						read_register(rs, rs_temp);
 						int_rs := to_integer(signed(rs_temp));
 						IF(int_rs = 0) THEN
@@ -284,7 +284,7 @@ BEGIN
 							cc_z := '0';
 						END IF;
 						WAIT UNTIL rising_edge(clk);
-					 WHEN BEQ => 
+					WHEN BEQ => 
 						read_register(rs, rs_temp);
 						read_register(rt, rt_temp);
 						IF(rs_temp = rt_temp) THEN
@@ -294,7 +294,7 @@ BEGIN
 							cc_v := '0';
 						END IF;
 						WAIT UNTIL rising_edge(clk);
-					 WHEN ORI=>
+					WHEN ORI=>
 						read_register(rs, rs_temp);
 						--Use as temp 32 bit vector to zero extend the imm value
 						rt_temp := (others=> '0');
@@ -302,7 +302,7 @@ BEGIN
 						register_temp := rs_temp OR rt_temp;
 						write_register(rd, register_temp);
 						WAIT UNTIL rising_edge(clk);
-					 WHEN ADDI =>
+					WHEN ADDI =>
 						read_register(rs, rs_temp);
 						int_rs := to_integer(signed(rs_temp));
 						int_imm := to_integer(signed(imm));
