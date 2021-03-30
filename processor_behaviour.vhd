@@ -191,7 +191,6 @@ BEGIN
 		ELSE
 			-- fetch next instruction
 			read_memory(pc,current_instr);
-			assert false report "Read new opperation" severity note;
 
 			pc := pc + 4; 
 			IF(current_instr = NOP) THEN
@@ -236,9 +235,8 @@ BEGIN
 								int_rs := to_integer(signed(rs_temp));
 								read_register(rt, rt_temp);
 								int_rt := to_integer(signed(rt_temp));
-								double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
-								hi := double_word_temp(63 downto 32);
-								lo := double_word_temp(31 downto 0);
+								lo := std_logic_vector(to_signed(int_rs/int_rt, word_length));
+								hi := std_logic_vector(to_signed(int_rs mod int_rt, word_length));
 								WAIT UNTIL rising_edge(clk);
 							WHEN MFLO => 
 								register_temp := lo;
@@ -267,6 +265,8 @@ BEGIN
 								ELSE
 									int_temp := 0;
 								END IF;
+								set_clear_cc(int_temp, register_temp);
+								write_register(rd, register_temp);
 								WAIT UNTIL rising_edge(clk);
 							WHEN OTHERS => ASSERT false REPORT "Illegal R-TYPE instruction" SEVERITY warning;
 								WAIT UNTIL rising_edge(clk);
@@ -275,10 +275,10 @@ BEGIN
 					 WHEN BGEZ =>
 						read_register(rs, rs_temp);
 						int_rs := to_integer(signed(rs_temp));
-						IF(int_rs = 0) THEN
-							cc_z := '1';
-							cc_v := '1';
-							pc := pc + to_integer(signed(imm));
+						IF(int_rs >= 0) THEN
+							set_clear_cc(int_rs,rt_temp);
+							-- Could shift to left 2 times
+							pc := pc + (to_integer(signed(imm))*4);
 						ELSE 
 							cc_v := '0';
 							cc_z := '0';
@@ -288,8 +288,10 @@ BEGIN
 						read_register(rs, rs_temp);
 						read_register(rt, rt_temp);
 						IF(rs_temp = rt_temp) THEN
+							set_clear_cc(to_integer(signed(rt_temp)),rt_temp);
 							cc_v := '1';
-							pc := pc + to_integer(signed(imm));
+							-- Could shift to left 2 times
+							pc := pc + (to_integer(signed(imm))*4);
 						ELSE 
 							cc_v := '0';
 						END IF;
@@ -300,7 +302,7 @@ BEGIN
 						rt_temp := (others=> '0');
 						rt_temp(15 downto 0) := imm;
 						register_temp := rs_temp OR rt_temp;
-						write_register(rd, register_temp);
+						write_register(rt, register_temp);
 						WAIT UNTIL rising_edge(clk);
 					 WHEN ADDI =>
 						read_register(rs, rs_temp);
@@ -308,7 +310,7 @@ BEGIN
 						int_imm := to_integer(signed(imm));
 						int_temp := int_rs + int_imm;
 						set_clear_cc(int_temp, register_temp);
-						write_register(rd, register_temp);
+						write_register(rt, register_temp);
 						WAIT UNTIL rising_edge(clk);
 					WHEN LUI => 
 						read_register(rs, rs_temp);
