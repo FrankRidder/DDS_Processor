@@ -10,7 +10,7 @@ vcom -quiet testmem.vhd
 vcom -quiet testbench.vhd
 vcom -quiet conf_beh.vhd
 
-vsim work.cnf_beh_test
+vsim work.cnf_beh_aprox
 
 add wave *
-run 20000ns
+run 200000ns
