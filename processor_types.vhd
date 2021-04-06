@@ -10,11 +10,12 @@ PACKAGE processor_types IS
   SUBTYPE bit5  IS std_logic_vector  (4 DOWNTO 0);
   SUBTYPE bit4  IS std_logic_vector  (3 DOWNTO 0);
   SUBTYPE bit3  IS std_logic_vector  (2 DOWNTO 0);
+  SUBTYPE bit2  IS std_logic_vector  (1 DOWNTO 0);
   TYPE register_file is array (0 to 31) of word;
   
-  CONSTANT double_word_length : integer := 64;
-  CONSTANT word_length : integer := 32;
-  CONSTANT half_word_length : integer := 16;
+  CONSTANT word_length : natural := 32;
+  CONSTANT double_word_length : natural := word_length*2;
+  CONSTANT half_word_length : natural := word_length/2;
   
 
   -- instruction set opcode

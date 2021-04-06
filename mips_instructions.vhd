@@ -4,7 +4,7 @@ USE ieee.numeric_std.ALL;
 USE work.processor_types.ALL;
 USE work.memory_config.ALL;
 
-ARCHITECTURE behaviour OF mips_processor  IS
+ARCHITECTURE instructions OF mips_processor  IS
 BEGIN
 	PROCESS
 		--Needed internal memory
@@ -160,8 +160,38 @@ BEGIN
       address_bus <= DONTCARE;
     END write_memory;
 	 
-	 
+	 --Multiplication algorithm
+	 PROCEDURE multiply(multiplicand, multiplier : IN std_logic_vector;
+			VARIABLE product : out std_logic_vector (word_length*2 -1 DOWNTO 0)) IS
 			
+			VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
+			ALIAS hi  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
+			ALIAS lo : word IS shift_vector(word_length DOWNTO 1);
+			ALIAS Q : bit2 IS shift_vector(1 DOWNTO 0);
+			
+			BEGIN
+			hi := (others => '0');
+			lo := std_logic_vector(multiplicand);
+			Q(0) := '0';
+			
+			for i in 1 to word_length loop
+				CASE Q IS
+					WHEN "01" => 
+					hi := std_logic_vector(signed(hi) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
+					
+					WHEN "10" => 
+					hi := std_logic_vector(signed(hi) - signed(multiplier)); -- maybe a single procedure for substraction std_logic_vector directly?
+					
+					WHEN others => shift_vector := (others => '0'); 
+					
+				END CASE;
+				shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
+				
+			END LOOP;
+			product := shift_vector(double_word_length DOWNTO 1);
+				
+	END multiply;
+	
 		--Processor loop:
 		BEGIN 
 			 --
@@ -340,4 +370,4 @@ BEGIN
 			END IF;
 		END IF;
 	END PROCESS;
-END behaviour;
+END instructions;

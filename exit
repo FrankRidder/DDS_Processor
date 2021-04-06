@@ -1,0 +1,68 @@
+[1mdiff --git a/memory.vhd b/memory.vhd[m
+[1mindex cd438dc..274b728 100644[m
+[1m--- a/memory.vhd[m
+[1m+++ b/memory.vhd[m
+[36m@@ -63,31 +63,38 @@[m [mBEGIN[m
+        [m
+     VARIABLE prg:text_segment:=[m
+            ([m
+[31m-				-- Code         Basic                      Source[m
+[31m-				"3c011001",--lui $1,0x00001001     5    lw $10, Val[m
+[31m-				"8c2a0000",--lw $10,0x00000000($1)[m
+[31m-				"20040004",--addi $4,$0,0x00000004 8    addi $4, $0, 4 #place 4+0 in register 4[m
+[31m-				"20010001",--addi $1,$0,0x00000001 9    addi $1, $0, 1 #place 4+0 in register 4[m
+[31m-				"00844020",--add $8,$4,$4          10   add $8, $4, $4 #place 4+4 in register 8[m
+[31m-				"00881825",--or $3,$4,$8           12   or $3, $4, $8 #logic or between 4 and 8 placed in 3[m
+[31m-				"3485000c",--ori $5,$4,0x0000000c  13   ori $5, $4 , 12 #logic or between 4 and 12 placed in register 5[m
+[31m-				"01040018",--mult $8,$4            14   mult $8, $4 #multiply 8 by 4, 32 MSB in HI, 32 LSB in LO[m
+[31m-				"01042822",--sub $5,$8,$4          15   sub $5, $8, $4 #substract 4 from 8 and place it in 5[m
+[31m-				"0104001a",--div $8,$4             16   div $8, $4 #divide 8 by 4, 32 MSB in HI, 32 LSB in LO[m
+[31m-				"00003012",--mflo $6               17   mflo $6 #put HI in 6[m
+[31m-				"00003810",--mfhi $7               18   mfhi $7 #put LO in 7[m
+[31m-				"3c0c000a",--lui $12,0x0000000a    19   lui $12, 10[m
+[31m-				"0088682a",--slt $13,$4,$8         20   slt $13, $4, $8 #if $4 < $8 than  $13 = 1 else 0[m
+[31m-				"01404020",--add $8,$10,$0         22   add $8, $10, $0 #register 8 is 10[m
+[31m-				"01014022",--sub $8,$8,$1          24   sub $8, $8, $1  #register 8 --[m
+[31m-				"0501fffe",--bgez $8,0xfffffffe    25   bgez $8, Loop[m
+[31m-				"11040003",--beq $8,$4,0x00000003  28   beq $8, $4 four #if register 8 is 4 goto four[m
+[31m-				"3c011001",--lui $1,0x00001001     30   sw $8, X #X = 8[m
+[31m-				"ac280000",--sw $8,0x00000000($1)[m
+[31m-				"11000002",--beq $8,$0,0x00000002  31   beq $8 $0 end #if register 8 is 0 foto end[m
+[31m-				"3c011001",--lui $1,0x00001001     34   sw $4, X #X = 4[m
+[31m-				"ac240000",--sw $4,0x00000000($1)[m
+[31m-				"00000000",--nop                   37   nop        [m
+[32m+[m				[32m-- Address    Code        Basic                     Source[m
+[32m+[m
+[32m+[m[32m"3c011001",  --lui $1,0x00001001     6        lw $11, Num[m
+[32m+[m[32m"8c2b0000",  --lw $11,0x00000000($1)[m
+[32m+[m[32m"000bb020",  --add $22,$0,$11        7    	add $22, $0, $11	      #num stored for no.of digit calculation[m
+[32m+[m[32m"340a0001",  --ori $10,$0,0x00000001 8    	ori $10, $0,  1		      #dummy line to test ori Statement[m
+[32m+[m[32m"000a5025",  --or $10,$0,$10         9    	or $10, $0, $10		      #dummy line to test or statement[m
+[32m+[m[32m"20190002",  --addi $25,$0,0x0000000212   	addi $25, $0, 2[m
+[32m+[m[32m"201a0005",  --addi $26,$0,0x0000000513   	addi $26, $0, 5[m
+[32m+[m[32m"033a0018",  --mult $25,$26          14   	mult $25, $26[m
+[32m+[m[32m"00006012",  --mflo $12              15   	mflo $12[m
+[32m+[m[32m"02cc001a",  --div $22,$12           19   	div $22, $12[m
+[32m+[m[32m"0000a012",  --mflo $20              20   	mflo $20 		         #last digit[m
+[32m+[m[32m"22b50001",  --addi $21,$21,0x000000021   	addi $21, $21, 1	     #counter increment[m
+[32m+[m[32m"22a90001",  --addi $9,$21,0x0000000122   	addi $9, $21, 1		     #transfers counter value+1 to main program[m
+[32m+[m[32m"20010000",  --addi $1,$0,0x00000000 23   	beq $20, 0, Main[m
+[32m+[m[32m"10340005",  --beq $1,$20,0x00000005[m
+[32m+[m[32m"0014b020",  --add $22,$0,$20        24   	add $22, $0, $20[m
+[32m+[m[32m"3c170064",  --lui $23,0x00000064    25   	lui $23, 100		     #dummy line to test lui statemenrt[m
+[32m+[m[32m"02d7c02a",  --slt $24,$22,$23       26   	slt $24, $22, $23  	     #dummy line to test slt statement[m
+[32m+[m[32m"20010001",  --addi $1,$0,0x00000001 27   	beq $24, 1, Loop[m
+[32m+[m[32m"1038fff5",  --beq $1,$24,0xfffffff5[m
+[32m+[m[32m"016c001a",  --div $11,$12           32   	div $11, $12[m
+[32m+[m[32m"00006812",  --mflo $13              33   	mflo $13[m
+[32m+[m[32m"00007010",  --mfhi $14              34   	mfhi $14                 #reminder[m
+[32m+[m[32m"01ee7820",  --add $15,$15,$14       35   	add $15, $15, $14	     #add digits[m
+[32m+[m[32m"000d5820",  --add $11,$0,$13        36   	add $11, $0,$13[m
+[32m+[m[32m"012a4822",  --sub $9,$9,$10         37   	sub $9, $9, $10		     #decrementing counter value[m
+[32m+[m[32m"0521fff9",  --bgez $9,0xfffffff9    38   	bgez $9,Main[m
+[32m+[m[32m"3c011001",  --lui $1,0x00001001     41   	sw $15, B                #store result[m
+[32m+[m[32m"ac2f0000",  --sw $15,0x00000000($1)[m
+[32m+[m[32m"00000000",  --nop                   43   	nop[m[41m       [m
+ 				OTHERS => "00000000" [m
+             );[m
+   [m
