@@ -160,27 +160,41 @@ BEGIN
       address_bus <= DONTCARE;
     END write_memory;
 	 
-	 --Multiplication algorithm
-	 PROCEDURE multiply(multiplicand, multiplier : IN std_logic_vector;
-			VARIABLE product : out std_logic_vector (word_length*2 -1 DOWNTO 0)) IS
+	  --Addition procedure
+	 PROCEDURE addition(addend1, addend2 : IN std_logic_vector(word_length-1 DOWNTO 0);
+			VARIABLE sum : out std_logic_vector (word_length-1 DOWNTO 0)) IS
+			BEGIN
+			sum := std_logic_vector(signed(addend1) + signed(addend2));
+	END addition;
+	
+	--Substraction procedure
+	PROCEDURE subtraction(minuend, subtrahend : IN std_logic_vector(word_length-1 DOWNTO 0);
+			VARIABLE difference : out std_logic_vector (word_length-1 DOWNTO 0)) IS
+			BEGIN
+			addition(minuend, std_logic_vector(-signed(subtrahend)), difference);
+	END subtraction;
+	
+	 --Multiplication procedure
+	 PROCEDURE multiplication(multiplicand, multiplier : IN std_logic_vector;
+			VARIABLE hi, lo : out std_logic_vector (word_length*2 -1 DOWNTO 0)) IS
 			
 			VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
-			ALIAS hi  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
-			ALIAS lo : word IS shift_vector(word_length DOWNTO 1);
+			ALIAS upper  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
+			ALIAS lower : word IS shift_vector(word_length DOWNTO 1);
 			ALIAS Q : bit2 IS shift_vector(1 DOWNTO 0);
 			
 			BEGIN
-			hi := (others => '0');
-			lo := std_logic_vector(multiplicand);
+			upper := (others => '0');
+			lower := std_logic_vector(multiplicand);
 			Q(0) := '0';
 			
 			for i in 1 to word_length loop
 				CASE Q IS
 					WHEN "01" => 
-					hi := std_logic_vector(signed(hi) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
+					upper := std_logic_vector(signed(upper) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
 					
 					WHEN "10" => 
-					hi := std_logic_vector(signed(hi) - signed(multiplier)); -- maybe a single procedure for substraction std_logic_vector directly?
+					lower := std_logic_vector(signed(upper) - signed(multiplier)); -- maybe a single procedure for substraction std_logic_vector directly?
 					
 					WHEN others => shift_vector := (others => '0'); 
 					
@@ -188,9 +202,10 @@ BEGIN
 				shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
 				
 			END LOOP;
-			product := shift_vector(double_word_length DOWNTO 1);
+			hi := upper;
+			lo := lower;
 				
-	END multiply;
+	END multiplication;
 	
 		--Processor loop:
 		BEGIN 
@@ -280,12 +295,8 @@ BEGIN
 								WAIT UNTIL rising_edge(clk);
 							WHEN MULT =>
 								read_register(rs, rs_temp);
-								int_rs := to_integer(signed(rs_temp));
 								read_register(rt, rt_temp);
-								int_rt := to_integer(signed(rt_temp));
-								double_word_temp := std_logic_vector(to_signed(int_rs * int_rt, double_word_length));
-								hi := double_word_temp(63 downto 32);
-								lo := double_word_temp(31 downto 0);
+								multiplication(rs_temp, rt_temp, hi, lo);
 								WAIT UNTIL rising_edge(clk);
 							WHEN SLT => 
 								read_register(rs, rs_temp);
