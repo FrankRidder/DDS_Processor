@@ -261,20 +261,16 @@ BEGIN
 								WAIT UNTIL rising_edge(clk);
 							WHEN ADD =>
 								read_register(rs, rs_temp);
-								int_rs := to_integer(signed(rs_temp));
 								read_register(rt, rt_temp);
-								int_rt := to_integer(signed(rt_temp));
-								int_temp := int_rs + int_rt;
-								set_clear_cc(int_temp, register_temp);
+								addition(rs_temp, rt_temp, register_temp);
+								set_clear_cc(to_integer(signed(register_temp)), register_temp);
 								write_register(rd, register_temp);
 								WAIT UNTIL rising_edge(clk);
 							WHEN SUBOP => 
 								read_register(rs, rs_temp);
-								int_rs := to_integer(signed(rs_temp));
 								read_register(rt, rt_temp);
-								int_rt := to_integer(signed(rt_temp));
-								int_temp := int_rs - int_rt;
-								set_clear_cc(int_temp, register_temp);
+								subtraction(rs_temp, rt_temp, register_temp);
+								set_clear_cc(to_integer(signed(register_temp)), register_temp);
 								write_register(rd, register_temp);
 								WAIT UNTIL rising_edge(clk);
 							WHEN DIV => 
@@ -349,10 +345,8 @@ BEGIN
 						WAIT UNTIL rising_edge(clk);
 					WHEN ADDI =>
 						read_register(rs, rs_temp);
-						int_rs := to_integer(signed(rs_temp));
-						int_imm := to_integer(signed(imm));
-						int_temp := int_rs + int_imm;
-						set_clear_cc(int_temp, register_temp);
+						addition(rs_temp, imm, register_temp);
+						set_clear_cc(to_integer(signed(register_temp)), register_temp);
 						write_register(rt, register_temp);
 						WAIT UNTIL rising_edge(clk);
 					WHEN LUI => 
