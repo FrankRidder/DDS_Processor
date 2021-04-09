@@ -26,8 +26,8 @@ ARCHITECTURE behaviour OF datapath IS
 BEGIN
 	PROCESS
 		--Needed internal memory
-		VARIABLE pc : natural;
-		VARIABLE current_instr:word;
+		SIGNAL pc : word;
+		SIGNAL current_instr:word;
 			ALIAS op  : bit6 IS current_instr(31 DOWNTO 26);
 			ALIAS rs : bit5 IS current_instr(25 DOWNTO 21);
 			ALIAS rt : bit5 IS current_instr(20 DOWNTO 16);
@@ -35,7 +35,7 @@ BEGIN
 			ALIAS sa : bit5 IS current_instr(10 DOWNTO 6);
 			ALIAS func : bit6 IS current_instr(5 DOWNTO 0);
 			ALIAS imm : halfword IS current_instr( 15 DOWNTO 0);
-		VARIABLE cc : bit3;
+		SIGNAL cc : bit3;
 			ALIAS cc_n  : std_logic IS cc(2);
 			ALIAS cc_z  : std_logic IS cc(1);
 			ALIAS cc_v  : std_logic IS cc(0);
@@ -67,20 +67,32 @@ BEGIN
 			-- using control conversion (see lecture and alu example)
 			control <= std2ctlr(ctrl_bus);
 			
-			if reset = '1' then
+			IF reset = '1' THEN
 				control <= (others => '0');
 				current_instr := (others => '0');
 				regfile <= (others => (others => '0'));
-				pc := text_base_address;
-				cc := "000"; -- clear condition code register
-				loop
-					wait until rising_edge(clk);
-					exit when reset = '0';
-				end loop;
+				pc <= text_base_address;
+				cc <= "000"; -- clear condition code register
+				LOOP
+					WAIT UNTIL rising_edge(clk);
+					EXIT WHEN reset = '0';
+				END LOOP;
 			
-			elsif (rising_edge(clk)) then
-				  address_bus <= pc  when control(mread) = '1';
-			
-			end if;
+			ELSIF (rising_edge(clk)) THEN
+				  if ready = '1' THEN
+						if (control(read_mem) = '1') and (mem_ready = '0') THEN
+							address_bus <= pc;
+							read <= '1';
+							ready <= '0';
+						END IF;
+				ELSE
+					if (control(mread) = '1') and (mem_ready = '1') and (control(pc_incr) = '1') THEN
+							instruction   <= input_bus;
+							current_instr <= input_bus;
+							read <= '0';
+							pc <= std_logic_vector(signed(pc) + 4); --Use alu to add
+						END IF;
+				END IF;
+			END IF;
 	END PROCESS;
 END behaviour;

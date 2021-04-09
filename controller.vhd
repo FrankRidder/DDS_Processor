@@ -24,32 +24,81 @@ BEGIN
 			ALIAS cc_v  : std_logic IS cc(0);
 		SIGNAL control : control_bus;
 		
-		procedure datapath_ready is
-			begin
-				loop 
-					wait until rising_edge(clk);
-					if reset = '1' then 
-						exit;
-					end if;
-					exit when ready = '1';
-				end loop;
-		end procedure;
+		ALIAS op  : bit6 IS instruction(31 DOWNTO 26);
+		ALIAS func : bit6 IS instruction(5 DOWNTO 0);
+		
+		PROCEDURE datapath_ready IS
+			BEGIN
+				LOOP 
+					WAIT UNTIL rising_edge(clk);
+					IF reset = '1' THEN 
+						EXIT;
+					END if;
+					EXIT WHEN ready = '1';
+				END loop;
+		END PROCEDURE;
 	
 		BEGIN
 			-- using control conversion
 			control <= std2ctlr(ctrl_bus);
 		
-			if reset = '1' then
+			IF (reset = '1') THEN
 				control <= (others => '0');
-				loop
-					wait until rising_edge(clk);
-					exit when reset = '0';
-				end loop;
+				LOOP
+					WAIT UNTIL rising_edge(clk);
+					EXIT WHEN reset = '0';
+				END LOOP;
 			
-			elsif (rising_edge(clk)) then
+			ELSIF (rising_edge(clk)) then
 				control <= (read_mem => '1', pc_incr => '1', others => '0'); 
 				datapath_ready;
-			
-			end if;
+				
+				IF(instruction = NOP) THEN
+					ASSERT false REPORT "Finished calculation" SEVERITY failure;
+				ELSE
+					CASE op IS 
+						WHEN RTYPE =>
+							CASE func IS
+								WHEN ANDOP =>
+	
+								WHEN OROP =>
+	
+								WHEN ADD =>
+
+								WHEN SUBOP => 
+
+								WHEN DIV => 
+		
+								WHEN MFLO => 
+
+								WHEN MFHI => 
+
+								WHEN MULT =>
+
+								WHEN SLT => 
+									
+								WHEN OTHERS => 
+									ASSERT false REPORT "Illegal R-TYPE instruction" SEVERITY warning;
+							END CASE;
+						 
+						WHEN BGEZ =>
+							
+						WHEN BEQ => 
+							
+						WHEN ORI=>
+							
+						WHEN ADDI =>
+							
+						WHEN LUI => 
+							
+						WHEN LW => 
+							
+						WHEN SW => 
+							
+						WHEN OTHERS => 
+							ASSERT false REPORT "Illegal I-Type instruction" SEVERITY warning;
+					 END CASE;
+				END IF;
+			END IF;
 	END PROCESS;
 END behaviour;
