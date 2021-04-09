@@ -1,0 +1,87 @@
+LIBRARY ieee;
+USE ieee.std_logic_1164.all;
+USE ieee.numeric_std.all;
+USE work.processor_types.all;
+
+ENTITY alu IS
+		GENERIC (word_length : integer := 32);
+		PORT (
+				result 	: OUT doubleword;
+				ready		: OUT std_logic;
+				cc 		: OUT bit3;
+				clk		: IN std_logic;
+				start		: IN std_logic;				reset  	: IN std_logic;
+				inst 		: IN bit6;
+				op1		: IN word;
+				op2 		: IN word);
+END alu;
+
+ARCHITECTURE behaviour OF alu IS
+		SIGNAL cci 		:  cc_type;
+			ALIAS cc_n 	: std_logic IS cci(2); -- negative
+			ALIAS cc_z 	: std_logic IS cci(1); -- zero
+			ALIAS cc_v 	: std_logic IS cci(0); -- overflow/compare
+		
+				--Set or clear condition codes based on given data
+		PROCEDURE set_clear_cc(data : IN integer; rd : OUT word) IS
+			CONSTANT LOW  : integer := -2**(word_length-1);
+			CONSTANT HIGH : integer := 2**(word_length-1)-1;
+			
+			BEGIN
+				IF (data<LOW) or (data>HIGH) THEN -- overflow
+					ASSERT false REPORT "overflow situation in arithmetic operation" SEVERITY note;
+					cc_v:='1'; cc_n:='-'; cc_z:='-'; rd:= DONTCARE;
+				ELSE
+					cc_v:='0'; cc_n:=BOOL2STD(data<0); cc_z:=BOOL2STD(data=0);
+					rd := std_logic_vector(to_signed(data, word_length));
+				END IF;
+		END set_clear_cc;	
+		
+			 --Multiplication procedure
+		PROCEDURE multiplication(multiplicand, multiplier : IN std_logic_vector;
+			VARIABLE hi, lo : out std_logic_vector (word_length*2 -1 DOWNTO 0)) IS
+		
+			VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
+				ALIAS upper  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
+				ALIAS lower : word IS shift_vector(word_length DOWNTO 1);
+				ALIAS Q : bit2 IS shift_vector(1 DOWNTO 0);
+				
+			BEGIN
+				upper := (others => '0');
+				lower := std_logic_vector(multiplicand);
+				Q(0) := '0';
+				
+				for i in 1 to word_length loop
+					CASE Q IS
+						WHEN "01" => 
+						upper := std_logic_vector(signed(upper) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
+						
+						WHEN "10" => 
+						lower := std_logic_vector(signed(upper) - signed(multiplier)); -- maybe a single procedure for substraction std_logic_vector directly?
+						
+						WHEN others => shift_vector := (others => '0'); 
+						
+					END CASE;
+					shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
+					
+				END LOOP;
+				hi := upper;
+				lo := lower;
+					
+		END multiplication;
+		
+		BEGIN
+			if (reset = '1') then
+				calc 	  <= (others => '0');
+				readyi  <= '0';
+				cci     <= (others => '0');
+				loop
+					wait until rising_edge(clk);
+					exit when reset = '0';
+				end loop;
+				
+			else 
+				--Add reading of instruction and application
+			end if;
+		
+end behaviour;
