@@ -30,7 +30,7 @@ BEGIN
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
 		VARIABLE int_imm : integer;
-		VARIABLE double_word_temp   : doubleword;
+		VARIABLE double_word_temp   : double_word;
 		VARIABLE int_temp : integer;
 		
 		CONSTANT DONTCARE : word := (OTHERS => '-');
@@ -161,22 +161,22 @@ BEGIN
     END write_memory;
 	 
 	  --Addition procedure
-	 PROCEDURE addition(addend1, addend2 : IN std_logic_vector(word_length-1 DOWNTO 0);
-			VARIABLE sum : out std_logic_vector (word_length-1 DOWNTO 0)) IS
+	 PROCEDURE addition(addend1, addend2 : IN std_logic_vector;
+			VARIABLE sum : out std_logic_vector) IS
 			BEGIN
-			sum := std_logic_vector(signed(addend1) + signed(addend2));
+			sum := std_logic_vector(resize(signed(addend1), sum'length) + resize(signed(addend2), sum'length));
 	END addition;
 	
 	--Substraction procedure
-	PROCEDURE subtraction(minuend, subtrahend : IN std_logic_vector(word_length-1 DOWNTO 0);
-			VARIABLE difference : out std_logic_vector (word_length-1 DOWNTO 0)) IS
+	PROCEDURE subtraction(minuend, subtrahend : IN std_logic_vector;
+			VARIABLE difference : out std_logic_vector) IS
 			BEGIN
 			addition(minuend, std_logic_vector(-signed(subtrahend)), difference);
 	END subtraction;
 	
 	 --Multiplication procedure
-	 PROCEDURE multiplication(multiplicand, multiplier : IN std_logic_vector;
-			VARIABLE hi, lo : out std_logic_vector (word_length*2 -1 DOWNTO 0)) IS
+	 PROCEDURE multiplication(multiplicand, multiplier : IN word;
+			VARIABLE hi, lo : out word) IS
 			
 			VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
 			ALIAS upper  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
@@ -191,12 +191,14 @@ BEGIN
 			for i in 1 to word_length loop
 				CASE Q IS
 					WHEN "01" => 
-					upper := std_logic_vector(signed(upper) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
+--					upper := std_logic_vector(signed(upper) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
+					addition(upper, multiplier, upper);
 					
 					WHEN "10" => 
-					lower := std_logic_vector(signed(upper) - signed(multiplier)); -- maybe a single procedure for substraction std_logic_vector directly?
+--					upper := std_logic_vector(signed(upper) - signed(multiplier)); -- maybe a single procedure for subtraction std_logic_vector directly?
+					subtraction(upper, multiplier, upper);
 					
-					WHEN others => shift_vector := (others => '0'); 
+					WHEN others => null; 
 					
 				END CASE;
 				shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
@@ -206,6 +208,49 @@ BEGIN
 			lo := lower;
 				
 	END multiplication;
+	
+			-- division algorithm
+		PROCEDURE division(dividend, divisor: IN word;
+		  VARIABLE quotient, remainder: out word) IS
+
+		  VARIABLE EAQ : std_logic_vector(double_word_length downto 0);
+		  ALIAS E: std_logic IS EAQ(double_word_length);
+		  ALIAS A: word IS EAQ(double_word_length - 1 downto word_length);
+		  ALIAS EA: std_logic_vector(word_length downto 0) IS EAQ(double_word_length downto word_length);
+		  ALIAS Q: word IS EAQ(word_length -1 downto 0);
+		  
+		  VARIABLE B : word;
+
+		  begin
+		    E := '0';
+		    A := (others => '0');
+		    Q := dividend;
+		    B := divisor;
+
+		  for i in 1 to word_length loop
+		    EAQ := EAQ((double_word_length -1) downto 0) & '0'; -- shift left EAQ
+
+				CASE E IS
+		      WHEN '0' => -- A >= B
+				subtraction(A, B, EA);
+--		      EA := std_logic_vector(signed(A)-signed(B));
+		      WHEN others => -- A < B
+--		      EA := std_logic_vector(signed(A)+signed(B));
+				addition(A, B, EA);
+			 END CASE;
+
+		    EAQ(0) := not E; -- set last bit of the quotient
+		  END LOOP;
+		  
+		  IF(E = '1') THEN
+--		   A := std_logic_vector(signed(A)+signed(B));
+			addition(A, B, A);
+		  END IF;
+
+		  remainder := A;
+		  quotient := Q;
+
+		END division;
 	
 		--Processor loop:
 		BEGIN 
@@ -275,11 +320,8 @@ BEGIN
 								WAIT UNTIL rising_edge(clk);
 							WHEN DIV => 
 								read_register(rs, rs_temp);
-								int_rs := to_integer(signed(rs_temp));
 								read_register(rt, rt_temp);
-								int_rt := to_integer(signed(rt_temp));
-								lo := std_logic_vector(to_signed(int_rs/int_rt, word_length));
-								hi := std_logic_vector(to_signed(int_rs mod int_rt, word_length));
+								division(rs_temp, rt_temp, lo, hi);
 								WAIT UNTIL rising_edge(clk);
 							WHEN MFLO => 
 								register_temp := lo;

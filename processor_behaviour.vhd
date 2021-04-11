@@ -30,7 +30,7 @@ BEGIN
 		VARIABLE int_rs : integer; 
       VARIABLE int_rt : integer;
 		VARIABLE int_imm : integer;
-		VARIABLE double_word_temp   : doubleword;
+		VARIABLE double_word_temp   : double_word;
 		VARIABLE int_temp : integer;
 		
 		CONSTANT DONTCARE : word := (OTHERS => '-');

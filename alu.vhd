@@ -72,13 +72,14 @@ ARCHITECTURE behaviour OF alu IS
 
 		-- division algorithm
 		PROCEDURE division(dividend, divisor: IN std_logic_vector;
-		  VARIABLE quotient, remainder: out std_logic_vector)) IS
+		  VARIABLE quotient, remainder: out std_logic_vector) IS
 
 		  VARIABLE EAQ : std_logic_vector(double_word_length downto 0);
-		  ALIAS E: bit IS EAQ(double_word_length)
-		  ALIAS A: word IS EAQ(double_word_length + 1 downto word_length + 1)
-		  ALIAS EA: std_logic_vector(word_length+1 downto 0) IS EAQ(double_word_length downto word_length + 1)
-		  ALIAS Q: word IS EAQ(word_length downto 0)
+		  ALIAS E: bit IS EAQ(double_word_length);
+		  ALIAS A: word IS EAQ(double_word_length - 1 downto word_length);
+		  ALIAS EA: std_logic_vector(word_length downto 0) IS EAQ(double_word_length downto word_length);
+		  ALIAS Q: word IS EAQ(word_length -1 downto 0);
+
 
 		  begin
 		    E := '0';
@@ -87,7 +88,7 @@ ARCHITECTURE behaviour OF alu IS
 		    B := divisor;
 
 		  for i in 1 to word_length loop
-		    EAQ := ((double_word_length -1) downto 0) & 0; -- shift left EAQ
+		    EAQ := EAQ((double_word_length -1) downto 0) & 0; -- shift left EAQ
 
 				CASE E IS
 		      WHEN "0" => -- A >= B
@@ -96,7 +97,7 @@ ARCHITECTURE behaviour OF alu IS
 		      EA := std_logic_vector(signed(A)+signed(B));
 		    END CASE;
 
-		    EAQ (double_word_length) := not E; -- set last bit of the quotient
+		    EAQ(0) := not E; -- set last bit of the quotient
 		  END LOOP;
 
 		  CASE E IS
@@ -119,8 +120,8 @@ ARCHITECTURE behaviour OF alu IS
 					exit when reset = '0';
 				end loop;
 
-			else
-				--Add reading of instruction and application
+--			else
+--				--Add reading of instruction and application
 			end if;
 
 end behaviour;

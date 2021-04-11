@@ -2,7 +2,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 PACKAGE processor_types IS
-  SUBTYPE doubleword IS std_logic_vector (63 DOWNTO 0);
+  SUBTYPE double_word IS std_logic_vector (63 DOWNTO 0);
   SUBTYPE word IS std_logic_vector (31 DOWNTO 0);
   SUBTYPE halfword IS std_logic_vector (15 DOWNTO 0);
   SUBTYPE bit8  IS std_logic_vector  (7 DOWNTO 0);
