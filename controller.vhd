@@ -12,7 +12,10 @@ ENTITY controller IS
 		ready				: IN 	std_ulogic; --Datapath ready for new operation
 		instruction		: IN word;
 		cc 				: IN 	cc_type;
-		ctrl_bus  		: OUT std_logic_vector(0 to control_bus'length-1));
+		ctrl_bus  		: OUT std_logic_vector(0 to control_bus'length-1);
+		alu_ready		: IN std_logic
+		alu_start		: OUT std_logic;
+		alu_inst 		: OUT bit6);
 END controller;
 
 ARCHITECTURE behaviour OF controller IS
@@ -37,6 +40,21 @@ BEGIN
 					EXIT WHEN ready = '1';
 				END loop;
 		END PROCEDURE;
+		
+		PROCEDURE send_alu(instr : bit6) IS
+			BEGIN
+				WAIT UNTIL rising_edge(clk);
+				alu_inst <= instr;
+				alu_start <= '1';
+				LOOP -- wait until alu is finished
+				WAIT UNTIL rising_edge(clk);
+					IF reset = '1' THEN 
+						EXIT;
+					END if;
+					EXIT WHEN alu_ready = '1';
+				end LOOP;
+				alu_start <= '0';
+		end PROCEDURE;
 	
 		BEGIN
 			-- using control conversion
@@ -44,6 +62,7 @@ BEGIN
 		
 			IF (reset = '1') THEN
 				control <= (others => '0');
+				alu_start <= '0';
 				LOOP
 					WAIT UNTIL rising_edge(clk);
 					EXIT WHEN reset = '0';
@@ -60,9 +79,15 @@ BEGIN
 						WHEN RTYPE =>
 							CASE func IS
 								WHEN ANDOP =>
-	
+								--Step 1 read_reg
+								--Wait till datapath ready
+								--Call alu for AND
+								
 								WHEN OROP =>
-	
+								--Step 1 read_reg
+								--Wait till datapath ready
+								--Call alu for OR
+								--Datapath Write to reg
 								WHEN ADD =>
 
 								WHEN SUBOP => 
@@ -84,7 +109,8 @@ BEGIN
 						WHEN BGEZ =>
 							
 						WHEN BEQ => 
-							
+							control <= (read_reg => '1', enable_rt => '1', others => '0');
+							datapath_ready;
 						WHEN ORI=>
 							
 						WHEN ADDI =>

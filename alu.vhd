@@ -4,7 +4,6 @@ USE ieee.numeric_std.all;
 USE work.processor_types.all;
 
 ENTITY alu IS
-		GENERIC (word_length : integer := 32);
 		PORT (
 				result 	: OUT doubleword;
 				ready		: OUT std_logic;
@@ -17,11 +16,11 @@ ENTITY alu IS
 END alu;
 
 ARCHITECTURE behaviour OF alu IS
-		SIGNAL cci 		:  cc_type;
+		SIGNAL cci 		: cc_type;
 			ALIAS cc_n 	: std_logic IS cci(2); -- negative
 			ALIAS cc_z 	: std_logic IS cci(1); -- zero
 			ALIAS cc_v 	: std_logic IS cci(0); -- overflow/compare
-
+		PROCESS
 				--Set or clear condition codes based on given data
 		PROCEDURE set_clear_cc(data : IN integer; rd : OUT word) IS
 			CONSTANT LOW  : integer := -2**(word_length-1);
@@ -97,7 +96,7 @@ ARCHITECTURE behaviour OF alu IS
 		      EA := std_logic_vector(signed(A)+signed(B));
 		    END CASE;
 
-		    EAQ(0) := not E; -- set last bit of the quotient
+		    EAQ (0) := not E; -- set last bit of the quotient
 		  END LOOP;
 
 		  CASE E IS
@@ -112,16 +111,36 @@ ARCHITECTURE behaviour OF alu IS
 
 		BEGIN
 			if (reset = '1') then
-				calc 	  <= (others => '0');
-				readyi  <= '0';
+				resulti 	  <= (others => '0');
 				cci     <= (others => '0');
+				readyi  <= '0';
 				loop
 					wait until rising_edge(clk);
 					exit when reset = '0';
 				end loop;
+				
+			elsif(rising_edge(clk)) then
+				if (start = '1') then
+					readyi <= '0';
+					WHEN RTYPE =>
+								CASE inst IS
+									WHEN ANDOP =>
+		
+									WHEN OROP =>
+		
+									WHEN ADD =>
+										result := std_logic_vector(signed(op1) + signed(op2));
+									WHEN SUBOP => 
+										result := std_logic_vector(signed(op1) - signed(op2));
+									WHEN DIV => 
 
---			else
---				--Add reading of instruction and application
+									WHEN MULT =>
+
+									WHEN OTHERS => 
+									ASSERT false REPORT "Illegal alu instruction" SEVERITY warning;
+				end if;
+				readyi <= '1';
 			end if;
-
+	end process;
+	ready			<= readyi; --Change ready outside of the process
 end behaviour;

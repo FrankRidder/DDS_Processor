@@ -18,8 +18,11 @@ ENTITY datapath is
 		address_bus : OUT word;
 		write 		: OUT  std_ulogic;
 		read  		: OUT  std_ulogic;
-
-    );
+		alu_result 	: IN doubleword;
+		alu_ready	: IN std_logic;
+		alu_cc 		: IN bit3;
+		alu_op1		: OUT word;
+		alu_op2 		: OUT word);
 END datapath;
 
 ARCHITECTURE behaviour OF datapath IS
@@ -41,6 +44,8 @@ BEGIN
 			ALIAS cc_v  : std_logic IS cc(0);
 		VARIABLE regfile : register_file;
 		SIGNAL control : control_bus;
+		
+		CONSTANT DONTCARE : word := (OTHERS => '-');
 		
 		--Read from internal register file
 		PROCEDURE read_register(reg_number : IN bit5; output : OUT word) IS
@@ -79,19 +84,25 @@ BEGIN
 				END LOOP;
 			
 			ELSIF (rising_edge(clk)) THEN
-				  if ready = '1' THEN
-						if (control(read_mem) = '1') and (mem_ready = '0') THEN
-							address_bus <= pc;
-							read <= '1';
-							ready <= '0';
-						END IF;
-				ELSE
-					if (control(mread) = '1') and (mem_ready = '1') and (control(pc_incr) = '1') THEN
+				IF (ready = '1') THEN
+					ready <= '0';
+					IF (control(read_mem) = '1') and (mem_ready = '0') THEN
+						address_bus <= pc;
+						read <= '1';
+					ELSIF (control(read_reg) = '1') THEN
+						alu_op1 <=  read_reg(rs, regfile);
+						alu_op2 <=  read_reg(rt, regfile) when control(enable_rt) = '1' else
+								read_reg(rd, regfile) when control(enable_rd) = '1' else
+								DONTCARE;
+						ready <= '1';
+					END IF;
+				ELSE 
+					IF (control(mread) = '1') and (mem_ready = '1') and (control(pc_incr) = '1') THEN
 							instruction   <= input_bus;
 							current_instr <= input_bus;
 							read <= '0';
 							pc <= std_logic_vector(signed(pc) + 4); --Use alu to add
-						END IF;
+					END IF;
 				END IF;
 			END IF;
 	END PROCESS;

@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 package control_names is
   -- Change this to make it bigger or smaller
   type control_signals is
-     (enable_imm, enable_low, enable_hi, enable_rt, enable_rs, enable_rd, read_reg, 
+     (enable_imm, enable_low, enable_hi, enable_rt, enable_rd, read_reg, 
 	  read_mem, write_reg, write_mem, pc_incr, pc_imm);
 
   -- do not change the following type declaration
