@@ -20,6 +20,7 @@ ARCHITECTURE behaviour OF alu IS
 			ALIAS cc_n 	: std_logic IS cci(2); -- negative
 			ALIAS cc_z 	: std_logic IS cci(1); -- zero
 			ALIAS cc_v 	: std_logic IS cci(0); -- overflow/compare
+		BEGIN
 		PROCESS
 				--Set or clear condition codes based on given data
 		PROCEDURE set_clear_cc(data : IN integer; rd : OUT word) IS
@@ -143,17 +144,17 @@ ARCHITECTURE behaviour OF alu IS
 					WHEN RTYPE =>
 								CASE inst IS
 									WHEN ANDOP =>
-		
+										result := op1 AND op2;
 									WHEN OROP =>
-		
+										result := op1 OR op2;
 									WHEN ADD =>
-										result := std_logic_vector(signed(op1) + signed(op2));
+										addition(op1, op2, result);
 									WHEN SUBOP => 
-										result := std_logic_vector(signed(op1) - signed(op2));
+										subtraction(op1, op2, result);
 									WHEN DIV => 
-
+										division(op1, op2, result(double_word_length-1 downto word_length), result(word_length-1 downto 0));
 									WHEN MULT =>
-
+										multiplication(op1, op2, result(double_word_length-1 downto word_length), result(word_length-1 downto 0));
 									WHEN OTHERS => 
 									ASSERT false REPORT "Illegal alu instruction" SEVERITY warning;
 				end if;
