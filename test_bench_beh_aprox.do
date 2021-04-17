@@ -13,4 +13,4 @@ vcom -quiet conf_beh.vhd
 vsim work.cnf_beh_aprox
 
 add wave *
-run 200000ns
+run 66570ns
