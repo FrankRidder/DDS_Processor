@@ -35,50 +35,66 @@ ARCHITECTURE behaviour OF alu IS
 					rd := std_logic_vector(to_signed(data, word_length));
 				END IF;
 		END set_clear_cc;
-
-			 --Multiplication procedure
-		PROCEDURE multiplication(multiplicand, multiplier : IN std_logic_vector;
-			VARIABLE hi, lo : out std_logic_vector (word_length*2 -1 DOWNTO 0)) IS
-
-			VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
-				ALIAS upper  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
-				ALIAS lower : word IS shift_vector(word_length DOWNTO 1);
-				ALIAS Q : bit2 IS shift_vector(1 DOWNTO 0);
-
+	  --Addition procedure
+	 PROCEDURE addition(addend1, addend2 : IN std_logic_vector;
+			VARIABLE sum : out std_logic_vector) IS
 			BEGIN
-				upper := (others => '0');
-				lower := std_logic_vector(multiplicand);
-				Q(0) := '0';
-
-				for i in 1 to word_length loop
-					CASE Q IS
-						WHEN "01" =>
-						upper := std_logic_vector(signed(upper) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
-
-						WHEN "10" =>
-						lower := std_logic_vector(signed(upper) - signed(multiplier)); -- maybe a single procedure for substraction std_logic_vector directly?
-
-						WHEN others => shift_vector := (others => '0');
-
-					END CASE;
-					shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
-
-				END LOOP;
-				hi := upper;
-				lo := lower;
-
-		END multiplication;
-
-		-- division algorithm
-		PROCEDURE division(dividend, divisor: IN std_logic_vector;
-		  VARIABLE quotient, remainder: out std_logic_vector) IS
+			sum := std_logic_vector(resize(signed(addend1), sum'length) + resize(signed(addend2), sum'length));
+	END addition;
+	
+	--Substraction procedure
+	PROCEDURE subtraction(minuend, subtrahend : IN std_logic_vector;
+			VARIABLE difference : out std_logic_vector) IS
+			BEGIN
+			addition(minuend, std_logic_vector(-signed(subtrahend)), difference);
+	END subtraction;
+	
+	 --Multiplication procedure
+	 PROCEDURE multiplication(multiplicand, multiplier : IN word;
+			VARIABLE hi, lo : out word) IS
+			
+			VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
+			ALIAS upper  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
+			ALIAS lower : word IS shift_vector(word_length DOWNTO 1);
+			ALIAS Q : bit2 IS shift_vector(1 DOWNTO 0);
+			
+			BEGIN
+			upper := (others => '0');
+			lower := std_logic_vector(multiplicand);
+			Q(0) := '0';
+			
+			for i in 1 to word_length loop
+				CASE Q IS
+					WHEN "01" => 
+--					upper := std_logic_vector(signed(upper) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
+					addition(upper, multiplier, upper);
+					
+					WHEN "10" => 
+--					upper := std_logic_vector(signed(upper) - signed(multiplier)); -- maybe a single procedure for subtraction std_logic_vector directly?
+					subtraction(upper, multiplier, upper);
+					
+					WHEN others => null; 
+					
+				END CASE;
+				shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
+				
+			END LOOP;
+			hi := upper;
+			lo := lower;
+				
+	END multiplication;
+	
+			-- division algorithm
+		PROCEDURE division(dividend, divisor: IN word;
+		  VARIABLE quotient, remainder: out word) IS
 
 		  VARIABLE EAQ : std_logic_vector(double_word_length downto 0);
-		  ALIAS E: bit IS EAQ(double_word_length);
+		  ALIAS E: std_logic IS EAQ(double_word_length);
 		  ALIAS A: word IS EAQ(double_word_length - 1 downto word_length);
 		  ALIAS EA: std_logic_vector(word_length downto 0) IS EAQ(double_word_length downto word_length);
 		  ALIAS Q: word IS EAQ(word_length -1 downto 0);
-
+		  
+		  VARIABLE B : word;
 
 		  begin
 		    E := '0';
@@ -87,22 +103,24 @@ ARCHITECTURE behaviour OF alu IS
 		    B := divisor;
 
 		  for i in 1 to word_length loop
-		    EAQ := EAQ((double_word_length -1) downto 0) & 0; -- shift left EAQ
+		    EAQ := EAQ((double_word_length -1) downto 0) & '0'; -- shift left EAQ
 
 				CASE E IS
-		      WHEN "0" => -- A >= B
-		      EA := std_logic_vector(signed(A)-signed(B));
+		      WHEN '0' => -- A >= B
+				subtraction(A, B, EA);
+--		      EA := std_logic_vector(signed(A)-signed(B));
 		      WHEN others => -- A < B
-		      EA := std_logic_vector(signed(A)+signed(B));
-		    END CASE;
+--		      EA := std_logic_vector(signed(A)+signed(B));
+				addition(A, B, EA);
+			 END CASE;
 
-		    EAQ (0) := not E; -- set last bit of the quotient
+		    EAQ(0) := not E; -- set last bit of the quotient
 		  END LOOP;
-
-		  CASE E IS
-		    WHEN "1" => -- correction
-		    A := std_logic_vector(signed(A)+signed(B));
-		  END CASE;
+		  
+		  IF(E = '1') THEN
+--		   A := std_logic_vector(signed(A)+signed(B));
+			addition(A, B, A);
+		  END IF;
 
 		  remainder := A;
 		  quotient := Q;
