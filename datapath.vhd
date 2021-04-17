@@ -18,7 +18,8 @@ ENTITY datapath is
 		address_bus : OUT word;
 		write 		: OUT  std_ulogic;
 		read  		: OUT  std_ulogic;
-		alu_result 	: IN doubleword;
+		alu_result1	: IN word;
+		alu_result2	: IN word;
 		alu_ready	: IN std_logic;
 		alu_cc 		: IN bit3;
 		alu_op1		: OUT word;
@@ -86,22 +87,32 @@ BEGIN
 			ELSIF (rising_edge(clk)) THEN
 				IF (ready = '1') THEN
 					ready <= '0';
-					IF (control(read_mem) = '1') and (mem_ready = '0') THEN
+					IF (control(read_mem) = '1') and (mem_ready = '0') AND (control(pc_incr) = '1') THEN
 						address_bus <= pc;
+						read <= '1';
+					ELSIF (control(read_mem) = '1') and (mem_ready = '0') THEN
+						address_bus <= alu_result1;
 						read <= '1';
 					ELSIF (control(read_reg) = '1') THEN
 						alu_op1 <=  read_reg(rs, regfile);
 						alu_op2 <=  read_reg(rt, regfile) when control(enable_rt) = '1' else
 								read_reg(rd, regfile) when control(enable_rd) = '1' else
+								--Add imm zero extended
 								DONTCARE;
+						ready <= '1';
+					ELSIF (control(pc_imm) = '1') THEN
+						pc := std_logic_vector(signed(pc) + (signed(imm) & "00"));
 						ready <= '1';
 					END IF;
 				ELSE 
 					IF (control(mread) = '1') and (mem_ready = '1') and (control(pc_incr) = '1') THEN
-							instruction   <= input_bus;
-							current_instr <= input_bus;
-							read <= '0';
-							pc <= std_logic_vector(signed(pc) + 4); --Use alu to add
+						instruction   <= input_bus;
+						current_instr <= input_bus;
+						read <= '0';
+						pc <= std_logic_vector( + 4); --Use alu to add
+					ELSIF (control(mread) = '1') and (mem_ready = '1')  THEN
+						write_register(rt; input_bus)
+						read <= '0';
 					END IF;
 				END IF;
 			END IF;

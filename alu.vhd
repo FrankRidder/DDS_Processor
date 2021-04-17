@@ -5,7 +5,8 @@ USE work.processor_types.all;
 
 ENTITY alu IS
 		PORT (
-				result 	: OUT doubleword;
+				result1 	: OUT word;
+				result2 	: OUT word;
 				ready		: OUT std_logic;
 				cc 		: OUT bit3;
 				clk		: IN std_logic;
@@ -22,10 +23,11 @@ ARCHITECTURE behaviour OF alu IS
 			ALIAS cc_v 	: std_logic IS cci(0); -- overflow/compare
 		BEGIN
 		PROCESS
-				--Set or clear condition codes based on given data
-		PROCEDURE set_clear_cc(data : IN integer; rd : OUT word) IS
-			CONSTANT LOW  : integer := -2**(word_length-1);
-			CONSTANT HIGH : integer := 2**(word_length-1)-1;
+		
+		--Set or clear condition codes based on given data
+		PROCEDURE set_clear_cc(data : IN signed; rd : OUT word) IS
+			CONSTANT LOW  : signed := -2**(word_length-1);
+			CONSTANT HIGH : signed := 2**(word_length-1)-1;
 
 			BEGIN
 				IF (data<LOW) or (data>HIGH) THEN -- overflow
@@ -33,7 +35,7 @@ ARCHITECTURE behaviour OF alu IS
 					cc_v:='1'; cc_n:='-'; cc_z:='-'; rd:= DONTCARE;
 				ELSE
 					cc_v:='0'; cc_n:=BOOL2STD(data<0); cc_z:=BOOL2STD(data=0);
-					rd := std_logic_vector(to_signed(data, word_length));
+					rd := std_logic_vector(data));
 				END IF;
 		END set_clear_cc;
 	  --Addition procedure
@@ -144,17 +146,19 @@ ARCHITECTURE behaviour OF alu IS
 					WHEN RTYPE =>
 								CASE inst IS
 									WHEN ANDOP =>
-										result := op1 AND op2;
+										set_clear_cc(signed(op1 AND op2), result1);
 									WHEN OROP =>
-										result := op1 OR op2;
+										set_clear_cc(signed(op1 OR op2), result1);
 									WHEN ADD =>
-										addition(op1, op2, result);
+										set_clear_cc(signed(op1) + signed(op2),result1);
 									WHEN SUBOP => 
-										subtraction(op1, op2, result);
+										set_clear_cc(signed(op1) - signed(op2),result1);
 									WHEN DIV => 
-										division(op1, op2, result(double_word_length-1 downto word_length), result(word_length-1 downto 0));
+										division(op1,op2,result1,result2);
 									WHEN MULT =>
-										multiplication(op1, op2, result(double_word_length-1 downto word_length), result(word_length-1 downto 0));
+										multiplication(op1,op2,result1,result2);
+									WHEN COMP =>
+										
 									WHEN OTHERS => 
 									ASSERT false REPORT "Illegal alu instruction" SEVERITY warning;
 				end if;

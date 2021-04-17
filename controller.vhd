@@ -79,27 +79,35 @@ BEGIN
 						WHEN RTYPE =>
 							CASE func IS
 								WHEN ANDOP =>
-								--Step 1 read_reg
-								--Wait till datapath ready
-								--Call alu for AND
+									control <= (read_reg => '1', enable_rt => '1', others => '0');
+									datapath_ready;
+									send_alu(ANDOP);
 								
 								WHEN OROP =>
-								--Step 1 read_reg
-								--Wait till datapath ready
-								--Call alu for OR
-								--Datapath Write to reg
+									control <= (read_reg => '1', enable_rt => '1', others => '0');
+									datapath_ready;
+									send_alu(OROP);
+									--Datapath Write to reg
 								WHEN ADD =>
-
+									control <= (read_reg => '1', enable_rt => '1', others => '0');
+									datapath_ready;
+									send_alu(ADD);
 								WHEN SUBOP => 
-
+									control <= (read_reg => '1', enable_rt => '1', others => '0');
+									datapath_ready;
+									send_alu(SUBOP);
 								WHEN DIV => 
-		
+									control <= (read_reg => '1', enable_rt => '1', others => '0');
+									datapath_ready;
+									send_alu(DIV);
 								WHEN MFLO => 
-
+									
 								WHEN MFHI => 
 
 								WHEN MULT =>
-
+									control <= (read_reg => '1', enable_rt => '1', others => '0');
+									datapath_ready;
+									send_alu(MULT);
 								WHEN SLT => 
 									
 								WHEN OTHERS => 
@@ -111,18 +119,35 @@ BEGIN
 						WHEN BEQ => 
 							control <= (read_reg => '1', enable_rt => '1', others => '0');
 							datapath_ready;
-						WHEN ORI=>
-							
-						WHEN ADDI =>
-							
-						WHEN LUI => 
-							
-						WHEN LW => 
-							
-						WHEN SW => 
-							
-						WHEN OTHERS => 
-							ASSERT false REPORT "Illegal I-Type instruction" SEVERITY warning;
+							send_alu(COMP);
+							IF(cc_v = ' 1' ) THEN
+								control <= (pc_imm => '1', others => '0');
+								datapath_ready;
+							END IF;
+						ELSE 
+								
+							WHEN ORI=>
+								control <= (read_reg => '1', enable_imm => '1', others => '0');
+								datapath_ready;
+								send_alu(OROP);
+							WHEN ADDI =>
+								control <= (read_reg => '1', enable_imm => '1', others => '0');
+								datapath_ready;
+								send_alu(ADD);
+							WHEN LUI => 
+								control <= (read_reg => '1', enable_imm => '1', others => '0');
+								datapath_ready;
+							WHEN LW => 
+								control <= (read_reg => '1', enable_imm => '1', others => '0');
+								datapath_ready;
+								send_alu(ADD);
+								control <= (read_mem => '1', others => '0'); 
+								datapath_ready;
+							WHEN SW => 
+								control <= (read_reg => '1', enable_imm => '1', others => '0');
+								datapath_ready;
+							WHEN OTHERS => 
+								ASSERT false REPORT "Illegal I-Type instruction" SEVERITY warning;
 					 END CASE;
 				END IF;
 			END IF;
