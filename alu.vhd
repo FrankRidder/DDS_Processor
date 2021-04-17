@@ -2,6 +2,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 USE work.processor_types.all;
+USE work.memory_config.all;
 
 ENTITY alu IS
 		PORT (
@@ -17,25 +18,26 @@ ENTITY alu IS
 END alu;
 
 ARCHITECTURE behaviour OF alu IS
-		SIGNAL cci 		: cc_type;
+		SIGNAL cci 		: bit3;
 			ALIAS cc_n 	: std_logic IS cci(2); -- negative
 			ALIAS cc_z 	: std_logic IS cci(1); -- zero
 			ALIAS cc_v 	: std_logic IS cci(0); -- overflow/compare
+		SIGNAL readyi  : std_logic;
 		BEGIN
 		PROCESS
 		
 		--Set or clear condition codes based on given data
-		PROCEDURE set_clear_cc(data : IN signed; rd : OUT word) IS
-			CONSTANT LOW  : signed := -2**(word_length-1);
-			CONSTANT HIGH : signed := 2**(word_length-1)-1;
+		PROCEDURE set_clear_cc(data : IN integer; signal rd : OUT word) IS
+			CONSTANT LOW  : integer := -2**(word_length-1);
+			CONSTANT HIGH : integer := 2**(word_length-1)-1;
 
 			BEGIN
 				IF (data<LOW) or (data>HIGH) THEN -- overflow
 					ASSERT false REPORT "overflow situation in arithmetic operation" SEVERITY note;
-					cc_v:='1'; cc_n:='-'; cc_z:='-'; rd:= DONTCARE;
+					cc_v<='1'; cc_n<='-'; cc_z<='-'; rd<= DONTCARE;
 				ELSE
-					cc_v:='0'; cc_n:=BOOL2STD(data<0); cc_z:=BOOL2STD(data=0);
-					rd := std_logic_vector(data));
+					cc_v<='0'; cc_n<=BOOL2STD(data<0); cc_z<=BOOL2STD(data=0);
+					rd <= std_logic_vector(to_signed(data, word_length));
 				END IF;
 		END set_clear_cc;
 	  --Addition procedure
@@ -54,7 +56,7 @@ ARCHITECTURE behaviour OF alu IS
 	
 	 --Multiplication procedure
 	 PROCEDURE multiplication(multiplicand, multiplier : IN word;
-			VARIABLE hi, lo : out word) IS
+			signal hi, lo : out word) IS
 			
 			VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
 			ALIAS upper  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
@@ -82,14 +84,14 @@ ARCHITECTURE behaviour OF alu IS
 				shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
 				
 			END LOOP;
-			hi := upper;
-			lo := lower;
+			hi <= upper;
+			lo <= lower;
 				
 	END multiplication;
 	
 			-- division algorithm
 		PROCEDURE division(dividend, divisor: IN word;
-		  VARIABLE quotient, remainder: out word) IS
+		  signal quotient, remainder: out word) IS
 
 		  VARIABLE EAQ : std_logic_vector(double_word_length downto 0);
 		  ALIAS E: std_logic IS EAQ(double_word_length);
@@ -125,16 +127,17 @@ ARCHITECTURE behaviour OF alu IS
 			addition(A, B, A);
 		  END IF;
 
-		  remainder := A;
-		  quotient := Q;
+		  remainder <= A;
+		  quotient  <= Q;
 
 		END division;
 
 		BEGIN
 			if (reset = '1') then
-				resulti 	  <= (others => '0');
 				cci     <= (others => '0');
 				readyi  <= '0';
+				result1 <= (others => '0');
+				result2 <= (others => '0');
 				loop
 					wait until rising_edge(clk);
 					exit when reset = '0';
@@ -143,24 +146,22 @@ ARCHITECTURE behaviour OF alu IS
 			elsif(rising_edge(clk)) then
 				if (start = '1') then
 					readyi <= '0';
-					WHEN RTYPE =>
-								CASE inst IS
-									WHEN ANDOP =>
-										set_clear_cc(signed(op1 AND op2), result1);
-									WHEN OROP =>
-										set_clear_cc(signed(op1 OR op2), result1);
-									WHEN ADD =>
-										set_clear_cc(signed(op1) + signed(op2),result1);
-									WHEN SUBOP => 
-										set_clear_cc(signed(op1) - signed(op2),result1);
-									WHEN DIV => 
-										division(op1,op2,result1,result2);
-									WHEN MULT =>
-										multiplication(op1,op2,result1,result2);
-									WHEN COMP =>
-										
-									WHEN OTHERS => 
+							CASE inst IS
+								WHEN ANDOP =>
+									set_clear_cc(to_integer(signed(op1 AND op2)), result1);
+								WHEN OROP =>
+									set_clear_cc(to_integer(signed(op1 OR op2)), result1);
+								WHEN ADD =>
+									set_clear_cc(to_integer(signed(op1) + signed(op2)),result1);
+								WHEN SUBOP => 
+									set_clear_cc(to_integer(signed(op1) - signed(op2)),result1);
+								WHEN DIV => 
+									division(op1,op2,result1,result2);
+								WHEN MULT =>
+									multiplication(op1,op2,result1,result2);									
+								WHEN OTHERS => 
 									ASSERT false REPORT "Illegal alu instruction" SEVERITY warning;
+							 END CASE;
 				end if;
 				readyi <= '1';
 			end if;
