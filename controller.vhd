@@ -177,5 +177,7 @@ BEGIN
 					 END CASE;
 				END IF;
 			END IF;
+						-- using control conversion
+			ctrl_bus <= ctlr2std(control);
 	END PROCESS;
 END behaviour;
