@@ -123,7 +123,9 @@ BEGIN
 								WHEN SLT =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									datapath_ready;
-									send_alu(SUBOP);
+									send_alu(COMP);
+									control <= (write_reg => '1', others => '0');
+									datapath_ready;
 								WHEN OTHERS =>
 									ASSERT false REPORT "Illegal R-TYPE instruction" SEVERITY warning;
 							END CASE;
