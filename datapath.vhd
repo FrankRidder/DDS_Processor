@@ -45,9 +45,11 @@ BEGIN
 			ALIAS cc_v  : std_logic IS cc(0);
 		VARIABLE regfile : register_file;
 		SIGNAL control : control_bus;
-		
+    SIGNAL lo : word;
+    SIGNAL hi : word;
+
 		CONSTANT DONTCARE : word := (OTHERS => '-');
-		
+
 		--Read from internal register file
 		PROCEDURE read_register(reg_number : IN bit5; output : OUT word) IS
 		BEGIN
@@ -57,7 +59,7 @@ BEGIN
 				output := regfile(to_integer(unsigned(reg_number)));
 			END IF;
 		END read_register;
-		
+
 		--Write to internal register file
 		PROCEDURE write_register(reg_number : IN bit5; input : IN word) IS
 		BEGIN
@@ -66,13 +68,13 @@ BEGIN
 			ELSE
 				regfile(to_integer(unsigned(reg_number))) := input;
 			END IF;
-		END write_register;	
-		
+		END write_register;
+
 		BEGIN
-  
+
 			-- using control conversion (see lecture and alu example)
 			control <= std2ctlr(ctrl_bus);
-			
+
 			IF reset = '1' THEN
 				control <= (others => '0');
 				current_instr := (others => '0');
@@ -83,7 +85,7 @@ BEGIN
 					WAIT UNTIL rising_edge(clk);
 					EXIT WHEN reset = '0';
 				END LOOP;
-			
+
 			ELSIF (rising_edge(clk)) THEN
 				IF (ready = '1') THEN
 					ready <= '0';
@@ -100,11 +102,17 @@ BEGIN
 								--Add imm zero extended
 								DONTCARE;
 						ready <= '1';
+          ELSIF (control(enable_low) = '1') THEN
+            write_register(rt; lo);
+            ready <= '1';
+          ELSIF (control(enable_high) = '1') THEN
+            write_register(rt; hi);
+            ready <= '1';
 					ELSIF (control(pc_imm) = '1') THEN
 						pc := std_logic_vector(signed(pc) + (signed(imm) & "00"));
 						ready <= '1';
 					END IF;
-				ELSE 
+				ELSE
 					IF (control(mread) = '1') and (mem_ready = '1') and (control(pc_incr) = '1') THEN
 						instruction   <= input_bus;
 						current_instr <= input_bus;
