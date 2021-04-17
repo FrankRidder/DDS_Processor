@@ -51,13 +51,16 @@ ARCHITECTURE behaviour OF datapath IS
 		CONSTANT DONTCARE : word := (OTHERS => '-');
 	
 		--Read from internal register file
-		PROCEDURE read_register(SIGNAL reg_number : IN bit5; SIGNAL regfile : IN register_file; SIGNAL output : OUT word) IS
+		FUNCTION read_register(reg_number : bit5; 
+			SIGNAL regfile : register_file) RETURN word IS VARIABLE output : word;
 		BEGIN
 			IF((unsigned(reg_number)) > regfile'high) THEN
 				ASSERT false REPORT "Register out of bound" SEVERITY failure;
+				output := (others => '0');
 			ELSE
-				output <= regfile(to_integer(unsigned(reg_number)));
+				output := regfile(to_integer(unsigned(reg_number)));
 			END IF;
+			RETURN output;
 		END read_register;
 
 		--Write to internal register file
@@ -70,24 +73,44 @@ ARCHITECTURE behaviour OF datapath IS
 			END IF;
 		END write_register;
 		
-		PROCEDURE sign_extend(SIGNAL inp : IN halfword; signal ret : OUT word) IS 
-		 BEGIN 
-			 ret(31 downto 16) <= (others => '0'); -- sign extend 
-			 ret(15 downto 0) <= inp; 
-		 END sign_extend; 
-		 
+		FUNCTION sign_extend(inp : halfword) RETURN word IS 
+			VARIABLE output : word;
+			BEGIN 
+				 output(31 downto 16) := (others => '0'); -- sign extend 
+				 output(15 downto 0) := inp; 
+				 RETURN output;
+		END sign_extend; 
+		
+		FUNCTION to_upper(inp : halfword) RETURN word IS 
+			VARIABLE output : word;
+			BEGIN 
+				 output(31 downto 16) := inp;
+				 output(15 downto 0) := (others => '0'); 
+				 RETURN output;
+		END to_upper;
+
 		BEGIN 
-			control <= std2ctlr(ctrl_bus); -- using control conversion (see lecture and alu example)
 			ready <= readyi; 
 			cc <= alu_cc;
+			control <= std2ctlr(ctrl_bus); -- using control conversion (see lecture and alu example)
+			
+			alu_op1 <= read_register(rs, regfile) WHEN (control(read_reg) = '1') ELSE (others => '0');
+ 	
+			alu_op2 <= read_register(rt, regfile) WHEN (control(enable_rt) = '1') ELSE
+							read_register(rd, regfile) WHEN (control(enable_rd) = '1') ELSE
+							sign_extend(imm) WHEN (control(enable_imm) = '1') ELSE
+							to_upper(imm) WHEN (control(imm_upper) = '1') ELSE								
+							(others => '0');
+			
 		PROCESS
 			BEGIN
 			WAIT UNTIL rising_edge(clk);
 			IF (reset = '1') THEN
-				control <= (others => '0');
 				current_instr <= (others => '0');
 				regfile <= (others => (others => '0'));
 				readyi <= '1';
+				read <= '0';
+				write <= '0';
 				pc <= std_logic_vector(to_signed(text_base_address, word_length));
 				cc <= "000"; -- clear condition code register
 			ELSE
@@ -101,23 +124,10 @@ ARCHITECTURE behaviour OF datapath IS
 						read <= '1';
 						readyi <= '0';
 					ELSIF (control(write_mem) = '1') and (mem_ready = '0') THEN
-						read_register(rd, regfile, output_bus);
+						output_bus <= read_register(rd, regfile);
 						address_bus <= alu_result1;
 						write <= '1';
 						readyi <= '0';
-					ELSIF (control(read_reg) = '1') THEN
-						readyi <= '0';
-						read_register(rs, regfile, alu_op1); 
-						IF (control(enable_rt) = '1') THEN 
-							read_register(rt, regfile, alu_op2); 
-						ELSIF (control(enable_rd) = '1') THEN 
-							read_register(rd, regfile, alu_op2); 
-						ELSIF (control(enable_imm) = '1') THEN 
-							sign_extend(imm, alu_op2); 
-						ELSE 
-							alu_op2 <= (others => '0');
-						END IF; 
-						readyi <= '1';
 					ELSIF (control(write_reg) = '1' AND control(enable_low) = '1' AND control(enable_hi) = '1') THEN
 						lo <= alu_result1;
 						hi <= alu_result2;
@@ -128,7 +138,8 @@ ARCHITECTURE behaviour OF datapath IS
 					ELSIF (control(enable_hi) = '1') THEN
 						write_register(rd, hi, regfile);
 					ELSIF (control(pc_imm) = '1') THEN
-						pc <= std_logic_vector(signed(pc) + (signed(imm) & "00"));
+						ASSERT false REPORT "im here" SEVERITY warning;
+						pc <= std_logic_vector(signed(pc) + signed(std_logic_vector'(imm & "00")));
 					END IF;
 				ELSE
 					IF (control(read_mem) = '1') and (mem_ready = '1') and (control(pc_incr) = '1') THEN

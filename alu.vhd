@@ -18,27 +18,12 @@ ENTITY alu IS
 END alu;
 
 ARCHITECTURE behaviour OF alu IS
+
 		ALIAS cc_n 	: std_logic IS cc(2); -- negative
 		ALIAS cc_z 	: std_logic IS cc(1); -- zero
 		ALIAS cc_v 	: std_logic IS cc(0); -- overflow/compare
 		SIGNAL readyi  : std_logic;
-		BEGIN
-		PROCESS
 		
-		--Set or clear condition codes based on given data
-		PROCEDURE set_clear_cc(data : IN integer; signal rd : OUT word) IS
-			CONSTANT LOW  : integer := -2**(word_length-1);
-			CONSTANT HIGH : integer := 2**(word_length-1)-1;
-
-			BEGIN
-				IF (data<LOW) or (data>HIGH) THEN -- overflow
-					ASSERT false REPORT "overflow situation in arithmetic operation" SEVERITY note;
-					cc_v<='1'; cc_n<='-'; cc_z<='-'; rd<= DONTCARE;
-				ELSE
-					cc_v<='0'; cc_n<=BOOL2STD(data<0); cc_z<=BOOL2STD(data=0);
-					rd <= std_logic_vector(to_signed(data, word_length));
-				END IF;
-		END set_clear_cc;
 		  --Addition procedure
 		PROCEDURE addition(addend1, addend2 : IN std_logic_vector;
 				VARIABLE sum : out std_logic_vector) IS
@@ -128,21 +113,36 @@ ARCHITECTURE behaviour OF alu IS
 		  quotient  <= Q;
 
 		END division;
-
+		
 		BEGIN
-			
-			if (reset = '1') then
-				readyi  <= '0';
-				result1 <= (others => '0');
-				result2 <= (others => '0');
-				loop
-					WAIT UNTIL rising_edge(clk);
-					exit when reset = '0';
-				end loop;
-				
-			else
+			ready  <= readyi;
+			PROCESS
+				--Set or clear condition codes based on given data
+				PROCEDURE set_clear_cc(data : IN integer; SIGNAL rd : OUT word) IS
+					CONSTANT LOW  : integer := -2**(word_length-1);
+					CONSTANT HIGH : integer := 2**(word_length-1)-1;
+						BEGIN
+						IF (data<LOW) or (data>HIGH) THEN -- overflow
+							ASSERT false REPORT "overflow situation in arithmetic operation" SEVERITY note;
+							cc_v<='1'; cc_n<='-'; cc_z<='-'; rd<= DONTCARE;
+						ELSE
+							cc_v<='0'; cc_n<=BOOL2STD(data<0); cc_z<=BOOL2STD(data=0);
+							rd <= std_logic_vector(to_signed(data, word_length));
+						END IF;
+				END set_clear_cc;
+			BEGIN
+				if (reset = '1') then
+					readyi  <= '0';
+					result1 <= (others => '0');
+					result2 <= (others => '0');
+					loop
+						WAIT UNTIL rising_edge(clk);
+						exit when reset = '0';
+					end loop;
+					
+				END IF;
 				WAIT UNTIL rising_edge(clk);
-				if (start = '1') then
+				IF (start = '1') THEN
 					readyi <= '0';
 							CASE inst IS
 								WHEN ANDOP =>
@@ -152,30 +152,30 @@ ARCHITECTURE behaviour OF alu IS
 									set_clear_cc(to_integer(signed(op1 OR op2)), result1);
 									result2 <= DONTCARE;
 								WHEN ADD =>
-									set_clear_cc(to_integer(signed(op1) + signed(op2)),result1);
+									set_clear_cc(to_integer(signed(op1) + signed(op2)), result1);
 									result2 <= DONTCARE;
 								WHEN SUBOP => 
-									set_clear_cc(to_integer(signed(op1) - signed(op2)),result1);
+									set_clear_cc(to_integer(signed(op1) - signed(op2)), result1);
 									result2 <= DONTCARE;
 								WHEN DIV => 
 									division(op1,op2,result1,result2);
 								WHEN MULT =>
 									multiplication(op1,op2,result1,result2);	
 								WHEN COMP =>
-									if(signed(op1) < signed(op2)) then
+									IF(signed(op1) < signed(op2)) THEN
 												result1 <= std_logic_vector(to_signed(1, word_length));
 												cc_v <= '1';
-											else
+											ELSE
 												result1 <= std_logic_vector(to_signed(0, word_length));
 												cc_v <= '0';
-											end if;
+											END IF;
 									result2 <= DONTCARE;
 								WHEN OTHERS => 
 									ASSERT false REPORT "Illegal alu instruction" SEVERITY warning;
 							 END CASE;
-				end if;
-				readyi <= '1';
-			end if;
-	end process;
-	ready			<= readyi; --Change ready outside of the process
-end behaviour;
+					readyi <= '1';
+				ELSE
+					readyi <= '0';
+				END IF;
+	END PROCESS;
+END behaviour;

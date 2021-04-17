@@ -19,7 +19,6 @@ ENTITY controller IS
 END controller;
 
 ARCHITECTURE behaviour OF controller IS
-
 		ALIAS cc_n  : std_logic IS cc(2);
 		ALIAS cc_z  : std_logic IS cc(1);
 		ALIAS cc_v  : std_logic IS cc(0);
@@ -28,6 +27,9 @@ ARCHITECTURE behaviour OF controller IS
 		ALIAS op  : bit6 IS instruction(31 DOWNTO 26);
 		ALIAS func : bit6 IS instruction(5 DOWNTO 0);
 BEGIN
+
+	-- using control conversion
+	ctrl_bus <= ctlr2std(control);
 	PROCESS
 		PROCEDURE datapath_ready IS
 			BEGIN
@@ -50,10 +52,9 @@ BEGIN
 					IF reset = '1' THEN
 						EXIT;
 					END if;
-					ASSERT false REPORT "I wait" SEVERITY warning;
+					alu_start <= '0';
 					EXIT WHEN alu_ready = '1';
 				end LOOP;
-				alu_start <= '0';
 		end PROCEDURE;
 
 		BEGIN
@@ -65,7 +66,7 @@ BEGIN
 					EXIT WHEN reset = '0';
 				END LOOP;
 
-			ELSIF (rising_edge(clk)) then
+			ELSIF (rising_edge(clk)) THEN
 				control <= (read_mem => '1', pc_incr => '1', others => '0');
 				datapath_ready;
 
@@ -77,96 +78,83 @@ BEGIN
 							CASE func IS
 								WHEN ANDOP =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
-									datapath_ready;
 									send_alu(ANDOP);
 									control <= (write_reg => '1', others => '0');
-									datapath_ready;
+									WAIT UNTIL rising_edge(clk);
 								WHEN OROP =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
-									datapath_ready;
 									send_alu(OROP);
 									control <= (write_reg => '1', others => '0');
-									datapath_ready;
+									WAIT UNTIL rising_edge(clk);
 								WHEN ADD =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
-									datapath_ready;
 									send_alu(ADD);
 									control <= (write_reg => '1', others => '0');
 									datapath_ready;
 								WHEN SUBOP =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
-									datapath_ready;
 									send_alu(SUBOP);
 									control <= (write_reg => '1', others => '0');
-									datapath_ready;
+									WAIT UNTIL rising_edge(clk);
 								WHEN DIV =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
-									datapath_ready;
 									send_alu(DIV);
 									control <= (write_reg => '1', enable_low => '1' , enable_hi => '1', others => '0');
-									datapath_ready;
+									WAIT UNTIL rising_edge(clk);
 								WHEN MFLO =>
 									control <= (enable_low => '1', others => '0');
-									datapath_ready;
+									WAIT UNTIL rising_edge(clk);
 								WHEN MFHI =>
 									control <= (enable_hi => '1', others => '0');
-									datapath_ready;
+									WAIT UNTIL rising_edge(clk);
 								WHEN MULT =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
-									datapath_ready;
 									send_alu(MULT);
 									control <= (write_reg => '1', enable_low => '1', enable_hi => '1', others => '0');
-									datapath_ready;
+									WAIT UNTIL rising_edge(clk);
 								WHEN SLT =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
-									datapath_ready;
 									send_alu(COMP);
 									control <= (write_reg => '1', others => '0');
-									datapath_ready;
+									WAIT UNTIL rising_edge(clk);
 								WHEN OTHERS =>
 									ASSERT false REPORT "Illegal R-TYPE instruction" SEVERITY warning;
 							END CASE;
 
 						WHEN BGEZ =>
 							control <= (read_reg => '1', others => '0');
-							datapath_ready;
 							send_alu(ADD);
 							IF(cc_z = '1' or cc_n = '0') THEN
 								control <= (pc_imm => '1', others => '0');
-								datapath_ready;
+								ASSERT false REPORT "do it" SEVERITY warning;
 							END IF;
+							WAIT UNTIL rising_edge(clk);
 						WHEN BEQ =>
 							control <= (read_reg => '1', enable_rt => '1', others => '0');
-							datapath_ready;
 							send_alu(SUBOP);
 							IF(cc_z = '1' ) THEN
 								control <= (pc_imm => '1', others => '0');
-								datapath_ready;
 							END IF;
+							WAIT UNTIL rising_edge(clk);
 						WHEN ORI=>
 							control <= (read_reg => '1', enable_imm => '1', others => '0');
-							datapath_ready;
 							send_alu(OROP);
 							control <= (write_reg => '1', others => '0');
-							datapath_ready;
+							WAIT UNTIL rising_edge(clk);
 						WHEN ADDI =>
 							control <= (read_reg => '1', enable_imm => '1', others => '0');
-							datapath_ready;
 							send_alu(ADD);
 							control <= (write_reg => '1', others => '0');
-							datapath_ready;
+							WAIT UNTIL rising_edge(clk);
 						WHEN LUI =>
-							control <= (read_reg => '1', enable_imm => '1', others => '0');
-							datapath_ready;
+							control <= (read_reg => '1', enable_imm => '1', imm_upper => '1',  others => '0');
 						WHEN LW =>
 							control <= (read_reg => '1', enable_imm => '1', others => '0');
-							datapath_ready;
 							send_alu(ADD);
 							control <= (read_mem => '1', others => '0');
 							datapath_ready;
 						WHEN SW =>
 							control <= (read_reg => '1', enable_imm => '1', others => '0');
-							datapath_ready;
 							send_alu(ADD);
 							control <= (write_mem => '1', others => '0');
 							datapath_ready;
@@ -175,7 +163,5 @@ BEGIN
 					 END CASE;
 				END IF;
 			END IF;
-			-- using control conversion
-			ctrl_bus <= ctlr2std(control);
 	END PROCESS;
 END behaviour;
