@@ -103,10 +103,10 @@ BEGIN
 								DONTCARE;
 						ready <= '1';
           ELSIF (control(enable_low) = '1') THEN
-            write_register(rt; lo);
+            write_register(rd; lo);
             ready <= '1';
           ELSIF (control(enable_high) = '1') THEN
-            write_register(rt; hi);
+            write_register(rd; hi);
             ready <= '1';
 					ELSIF (control(pc_imm) = '1') THEN
 						pc := std_logic_vector(signed(pc) + (signed(imm) & "00"));
