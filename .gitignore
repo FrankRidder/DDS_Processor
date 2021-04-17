@@ -68,3 +68,7 @@ work/_vmake
 *.qpg
 
 *.wlf
+
+*.vstf
+
+output_files/mips_processor.sld
