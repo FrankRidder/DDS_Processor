@@ -172,6 +172,9 @@ BEGIN
 							WHEN SW =>
 								control <= (read_reg => '1', enable_imm => '1', others => '0');
 								datapath_ready;
+								send_alu(ADD);
+								control <= (write_mem => '1', others => '0');
+								datapath_ready;
 							WHEN OTHERS =>
 								ASSERT false REPORT "Illegal I-Type instruction" SEVERITY warning;
 					 END CASE;

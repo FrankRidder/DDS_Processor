@@ -95,6 +95,9 @@ BEGIN
 					ELSIF (control(read_mem) = '1') and (mem_ready = '0') THEN
 						address_bus <= alu_result1;
 						read <= '1';
+          ELSIF (control(write_mem) = '1') and (mem_ready = '0') THEN
+  					read_reg(rd, output_bus);
+  					write <= '1';
 					ELSIF (control(read_reg) = '1') THEN
 						alu_op1 <=  read_reg(rs, regfile);
 						alu_op2 <=  read_reg(rt, regfile) when control(enable_rt) = '1' else
@@ -120,14 +123,20 @@ BEGIN
 						ready <= '1';
 					END IF;
 				ELSE
-					IF (control(mread) = '1') and (mem_ready = '1') and (control(pc_incr) = '1') THEN
+					IF (control(read_mem) = '1') and (mem_ready = '1') and (control(pc_incr) = '1') THEN
 						instruction   <= input_bus;
 						current_instr <= input_bus;
+            address_bus <= (others => '0');
 						read <= '0';
 						pc <= std_logic_vector( + 4); --Use alu to add
-					ELSIF (control(mread) = '1') and (mem_ready = '1')  THEN
-						write_register(rt; input_bus)
+					ELSIF (control(read_mem) = '1') and (mem_ready = '1')  THEN
+						write_register(rt; input_bus);
+            address_bus <= (others => '0');
 						read <= '0';
+					END IF;
+          ELSIF (control(write_mem) = '1') and (mem_ready = '1')  THEN
+            address_bus <= (others => '0');
+						write <= '0';
 					END IF;
 				END IF;
 			END IF;
