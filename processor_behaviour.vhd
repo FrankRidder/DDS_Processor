@@ -32,11 +32,6 @@ BEGIN
 		VARIABLE int_imm : integer;
 		VARIABLE double_word_temp   : double_word;
 		VARIABLE int_temp : integer;
-		
-		CONSTANT DONTCARE : word := (OTHERS => '-');
-
-		TYPE bool2std_logic_table IS ARRAY (boolean) OF std_logic;
-		CONSTANT BOOL2STD:bool2std_logic_table:=(false=>'0', true=>'1');
 			
 		--Set or clear condition codes based on given data
 		PROCEDURE set_clear_cc(data : IN integer; rd : OUT word) IS

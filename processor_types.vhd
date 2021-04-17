@@ -17,6 +17,11 @@ PACKAGE processor_types IS
   CONSTANT double_word_length : natural := word_length*2;
   CONSTANT half_word_length : natural := word_length/2;
   
+  CONSTANT DONTCARE : word := (OTHERS => '-');
+  
+  TYPE bool2std_logic_table IS ARRAY (boolean) OF std_logic;
+  CONSTANT BOOL2STD:bool2std_logic_table:=(false=>'0', true=>'1');
+  
 
   -- instruction set opcode
   CONSTANT RTYPE:		bit6:="000000";
@@ -28,7 +33,7 @@ PACKAGE processor_types IS
   CONSTANT LW:       bit6:="100011";
   CONSTANT SW:       bit6:="101011";
   
-  --function code of opcode R-Type
+  --function code of opcode R-Type + COMP for ALU
   CONSTANT ANDOP:    bit6:="100100"; --AND is reserved
   CONSTANT OROP:     bit6:="100101"; --OR is reserved     
   CONSTANT ADD:      bit6:="100000"; 
@@ -38,6 +43,7 @@ PACKAGE processor_types IS
   CONSTANT MFHI:     bit6:="010000";
   CONSTANT MULT:     bit6:="011000";
   CONSTANT SLT:      bit6:="101010";
+  CONSTANT COMP:		bit6:="111111";
   
   --nop instruction
   CONSTANT NOP:      word:="00000000000000000000000000000000";

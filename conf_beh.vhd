@@ -23,3 +23,16 @@ CONFIGURATION cnf_beh_aprox OF testbench IS
 
   END FOR;
 END cnf_beh_aprox;
+
+CONFIGURATION cnf_dp_ctrl_test OF testbench IS
+  FOR behaviour
+    FOR mem:memory 
+		USE ENTITY work.memory(behaviour);
+    END FOR;
+	 
+    FOR cpu:mips_processor 
+		USE ENTITY work.mips_processor(mips_dp_ctrl);
+    END FOR;
+
+  END FOR;
+END cnf_dp_ctrl_test;
