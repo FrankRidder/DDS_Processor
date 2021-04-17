@@ -13,4 +13,5 @@ vcom -quiet conf_beh.vhd
 vsim work.cnf_beh_test
 
 add wave *
+add wave -position insertpoint sim:/testbench/cpu/line__11/*
 run 20000ns
