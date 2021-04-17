@@ -82,24 +82,27 @@ BEGIN
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									datapath_ready;
 									send_alu(ANDOP);
-
+									control <= (write_reg => '1', others => '0');
 								WHEN OROP =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									datapath_ready;
 									send_alu(OROP);
-									--Datapath Write to reg
+									control <= (write_reg => '1', others => '0');
 								WHEN ADD =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									datapath_ready;
 									send_alu(ADD);
+									control <= (write_reg => '1', others => '0');
 								WHEN SUBOP =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									datapath_ready;
 									send_alu(SUBOP);
+									control <= (write_reg => '1', others => '0');
 								WHEN DIV =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									datapath_ready;
 									send_alu(DIV);
+									control <= (write_reg => '1', enable_low => 1, enable_high => '1', others => '0');
 								WHEN MFLO =>
 									control <= (enable_low => 1, others => '0');
 									datapath_ready;
@@ -111,18 +114,26 @@ BEGIN
 									datapath_ready;
 									send_alu(MULT);
 								WHEN SLT =>
-
+									control <= (read_reg => '1', enable_rt => '1', others => '0');
+									datapath_ready;
+									send_alu(SUBOP);
 								WHEN OTHERS =>
 									ASSERT false REPORT "Illegal R-TYPE instruction" SEVERITY warning;
 							END CASE;
 
 						WHEN BGEZ =>
-
+							control <= (read_reg => '1', others => '0');
+							datapath_ready;
+							send_alu(ADD);
+							IF(cc_n = '0' ) THEN
+								control <= (pc_imm => '1', others => '0');
+								datapath_ready;
+								END IF;
 						WHEN BEQ =>
 							control <= (read_reg => '1', enable_rt => '1', others => '0');
 							datapath_ready;
-							send_alu(COMP);
-							IF(cc_v = ' 1' ) THEN
+							send_alu(SUBOP);
+							IF(cc_z = '1' ) THEN
 								control <= (pc_imm => '1', others => '0');
 								datapath_ready;
 							END IF;
@@ -132,10 +143,12 @@ BEGIN
 								control <= (read_reg => '1', enable_imm => '1', others => '0');
 								datapath_ready;
 								send_alu(OROP);
+								control <= (write_reg => '1', others => '0');
 							WHEN ADDI =>
 								control <= (read_reg => '1', enable_imm => '1', others => '0');
 								datapath_ready;
 								send_alu(ADD);
+								control <= (write_reg => '1', others => '0');
 							WHEN LUI =>
 								control <= (read_reg => '1', enable_imm => '1', others => '0');
 								datapath_ready;

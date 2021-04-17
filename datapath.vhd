@@ -100,7 +100,7 @@ BEGIN
 						alu_op2 <=  read_reg(rt, regfile) when control(enable_rt) = '1' else
 								read_reg(rd, regfile) when control(enable_rd) = '1' else
 								--Add imm zero extended
-								DONTCARE;
+								read_reg(OTHERS => 0, regfile);
 						ready <= '1';
           ELSIF (control(enable_low) = '1') THEN
             write_register(rd; lo);
