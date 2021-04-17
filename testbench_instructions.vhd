@@ -1,22 +1,22 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use work.processor_types.all;
-use work.memory_config.all;
-entity testbench_instructions is
-end testbench_instructions;
+LIBRARY ieee;
+USE ieee.std_logic_1164.all;
+USE work.processor_types.all;
+USE work.memory_config.all;
+ENTITY testbench_instructions IS
+END testbench_instructions;
 
-architecture behaviour of testbench_instructions is
-  component memory port(
-		d_busout : out word;
-      d_busin  : in  word;
-      a_bus    : in  word;
-      clk      : in  std_ulogic;
-      write    : in  std_ulogic;
-      read     : in  std_ulogic;
-      ready    : out std_ulogic);
-	end component;
+ARCHITECTURE behaviour OF testbench_instructions IS
+  COMPONENT memory PORT(
+		d_busout : OUT word;
+      d_busin  : IN  word;
+      a_bus    : IN  word;
+      clk      : IN  std_ulogic;
+      write    : IN  std_ulogic;
+      read     : IN  std_ulogic;
+      ready    : OUT std_ulogic);
+	END COMPONENT;
 
-	component mips_processor port (
+	COMPONENT mips_processor PORT (
 		input_bus  : IN word;
 		output_bus : OUT word;
 		address_bus : OUT word;
@@ -25,24 +25,39 @@ architecture behaviour of testbench_instructions is
 		read  : OUT  std_ulogic;
 		ready : IN std_ulogic;
 		reset : IN std_logic);
-	end component;
+	END COMPONENT;
 	
-	signal inputcpu_bus_beh,outputcpu_bus_beh,address_bus_beh : word;
-	signal read_beh,write_beh,ready_beh               : std_ulogic;
-	signal inputcpu_bus_inst,outputcpu_bus_inst,address_bus_inst : word;
-	signal read_inst,write_inst,ready_inst            : std_ulogic;
-	signal reset                          : std_ulogic := '1';
-	signal clk                            : std_ulogic := '0';
-	begin
+	SIGNAL inputcpu_bus_beh,outputcpu_bus_beh,address_bus_beh : word;
+	SIGNAL read_beh,write_beh,ready_beh               : std_ulogic;
+	SIGNAL inputcpu_bus_inst,outputcpu_bus_inst,address_bus_inst : word;
+	SIGNAL read_inst,write_inst,ready_inst            : std_ulogic;
+	SIGNAL reset                          : std_ulogic := '1';
+	SIGNAL clk                            : std_ulogic := '0';
+	BEGIN
 	
 		behaviour:mips_processor
-			port map(inputcpu_bus_beh,outputcpu_bus_beh,address_bus_beh,clk,write_beh,read_beh,ready_beh,reset);
+			PORT MAP(inputcpu_bus_beh,outputcpu_bus_beh,address_bus_beh,clk,write_beh,read_beh,ready_beh,reset);
 		instructions:mips_processor
-			port map(inputcpu_bus_inst,outputcpu_bus_inst,address_bus_inst,clk,write_inst,read_inst,ready_inst,reset);
+			PORT MAP(inputcpu_bus_inst,outputcpu_bus_inst,address_bus_inst,clk,write_inst,read_inst,ready_inst,reset);
 		mem_beh:memory
-			port map(inputcpu_bus_beh,outputcpu_bus_beh,address_bus_beh,clk,write_beh,read_beh,ready_beh);
+			PORT MAP(inputcpu_bus_beh,outputcpu_bus_beh,address_bus_beh,clk,write_beh,read_beh,ready_beh);
 		mem_inst:memory
-			port map(inputcpu_bus_inst,outputcpu_bus_inst,address_bus_inst,clk,write_inst,read_inst,ready_inst);
-	reset <= '1', '0' after 100 ns;
-	clk   <= not clk after 10 ns;
-end behaviour;
+			PORT MAP(inputcpu_bus_inst,outputcpu_bus_inst,address_bus_inst,clk,write_inst,read_inst,ready_inst);
+	reset <= '1', '0' AFTER 100 ns;
+	clk   <= not clk AFTER 10 ns;
+	
+	PROCESS
+	BEGIN
+--		IF(falling_edge(clk)) THEN
+		WAIT UNTIL falling_edge(clk);
+			ASSERT inputcpu_bus_beh = inputcpu_bus_inst REPORT "inequality on the input bus from memory" SEVERITY note;
+			ASSERT outputcpu_bus_beh = outputcpu_bus_inst REPORT "inequality on the output bus to memory" SEVERITY note;
+			ASSERT address_bus_beh = address_bus_inst REPORT "inequality on the address bus" SEVERITY note;
+			ASSERT write_beh = write_inst REPORT "inequality on the write bus" SEVERITY note;
+			ASSERT read_beh = read_inst REPORT "inequality on the read bus" SEVERITY note;
+			ASSERT ready_beh = ready_inst REPORT "inequality on the ready bus" SEVERITY note;
+--		END IF;
+	END PROCESS;
+			
+	
+END behaviour;
