@@ -18,10 +18,9 @@ ENTITY alu IS
 END alu;
 
 ARCHITECTURE behaviour OF alu IS
-		SIGNAL cci 		: bit3;
-			ALIAS cc_n 	: std_logic IS cci(2); -- negative
-			ALIAS cc_z 	: std_logic IS cci(1); -- zero
-			ALIAS cc_v 	: std_logic IS cci(0); -- overflow/compare
+		ALIAS cc_n 	: std_logic IS cc(2); -- negative
+		ALIAS cc_z 	: std_logic IS cc(1); -- zero
+		ALIAS cc_v 	: std_logic IS cc(0); -- overflow/compare
 		SIGNAL readyi  : std_logic;
 		BEGIN
 		PROCESS
@@ -40,54 +39,52 @@ ARCHITECTURE behaviour OF alu IS
 					rd <= std_logic_vector(to_signed(data, word_length));
 				END IF;
 		END set_clear_cc;
-	  --Addition procedure
-	 PROCEDURE addition(addend1, addend2 : IN std_logic_vector;
-			VARIABLE sum : out std_logic_vector) IS
-			BEGIN
-			sum := std_logic_vector(resize(signed(addend1), sum'length) + resize(signed(addend2), sum'length));
-	END addition;
+		  --Addition procedure
+		PROCEDURE addition(addend1, addend2 : IN std_logic_vector;
+				VARIABLE sum : out std_logic_vector) IS
+				BEGIN
+				sum := std_logic_vector(resize(signed(addend1), sum'length) + resize(signed(addend2), sum'length));
+		END addition;
 	
-	--Substraction procedure
-	PROCEDURE subtraction(minuend, subtrahend : IN std_logic_vector;
-			VARIABLE difference : out std_logic_vector) IS
-			BEGIN
-			addition(minuend, std_logic_vector(-signed(subtrahend)), difference);
-	END subtraction;
+		--Substraction procedure
+		PROCEDURE subtraction(minuend, subtrahend : IN std_logic_vector;
+				VARIABLE difference : out std_logic_vector) IS
+				BEGIN
+				addition(minuend, std_logic_vector(-signed(subtrahend)), difference);
+		END subtraction;
 	
-	 --Multiplication procedure
-	 PROCEDURE multiplication(multiplicand, multiplier : IN word;
-			signal hi, lo : out word) IS
-			
-			VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
-			ALIAS upper  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
-			ALIAS lower : word IS shift_vector(word_length DOWNTO 1);
-			ALIAS Q : bit2 IS shift_vector(1 DOWNTO 0);
-			
-			BEGIN
-			upper := (others => '0');
-			lower := std_logic_vector(multiplicand);
-			Q(0) := '0';
-			
-			for i in 1 to word_length loop
-				CASE Q IS
-					WHEN "01" => 
---					upper := std_logic_vector(signed(upper) + signed(multiplier)); -- maybe a single procedure for addition std_logic_vector directly?
-					addition(upper, multiplier, upper);
-					
-					WHEN "10" => 
---					upper := std_logic_vector(signed(upper) - signed(multiplier)); -- maybe a single procedure for subtraction std_logic_vector directly?
-					subtraction(upper, multiplier, upper);
-					
-					WHEN others => null; 
-					
-				END CASE;
-				shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
+		 --Multiplication procedure
+		 PROCEDURE multiplication(multiplicand, multiplier : IN word;
+				signal hi, lo : out word) IS
 				
-			END LOOP;
-			hi <= upper;
-			lo <= lower;
+				VARIABLE shift_vector : std_logic_vector(double_word_length downto 0);-- the full vector for booth's algorithm
+				ALIAS upper  : word IS shift_vector(double_word_length DOWNTO word_length + 1);
+				ALIAS lower : word IS shift_vector(word_length DOWNTO 1);
+				ALIAS Q : bit2 IS shift_vector(1 DOWNTO 0);
 				
-	END multiplication;
+				BEGIN
+				upper := (others => '0');
+				lower := std_logic_vector(multiplicand);
+				Q(0) := '0';
+				
+				for i in 1 to word_length loop
+					CASE Q IS
+						WHEN "01" => 
+						addition(upper, multiplier, upper);
+						
+						WHEN "10" => 
+						subtraction(upper, multiplier, upper);
+						
+						WHEN others => null; 
+						
+					END CASE;
+					shift_vector(double_word_length-1 DOWNTO 0) := shift_vector(double_word_length DOWNTO 1); --this is shifting right, while keeping the MSB
+					
+				END LOOP;
+				hi <= upper;
+				lo <= lower;
+					
+		END multiplication;
 	
 			-- division algorithm
 		PROCEDURE division(dividend, divisor: IN word;
@@ -133,32 +130,46 @@ ARCHITECTURE behaviour OF alu IS
 		END division;
 
 		BEGIN
+			
 			if (reset = '1') then
-				cci     <= (others => '0');
 				readyi  <= '0';
 				result1 <= (others => '0');
 				result2 <= (others => '0');
 				loop
-					wait until rising_edge(clk);
+					WAIT UNTIL rising_edge(clk);
 					exit when reset = '0';
 				end loop;
 				
-			elsif(rising_edge(clk)) then
+			else
+				WAIT UNTIL rising_edge(clk);
 				if (start = '1') then
 					readyi <= '0';
 							CASE inst IS
 								WHEN ANDOP =>
 									set_clear_cc(to_integer(signed(op1 AND op2)), result1);
+									result2 <= DONTCARE;
 								WHEN OROP =>
 									set_clear_cc(to_integer(signed(op1 OR op2)), result1);
+									result2 <= DONTCARE;
 								WHEN ADD =>
 									set_clear_cc(to_integer(signed(op1) + signed(op2)),result1);
+									result2 <= DONTCARE;
 								WHEN SUBOP => 
 									set_clear_cc(to_integer(signed(op1) - signed(op2)),result1);
+									result2 <= DONTCARE;
 								WHEN DIV => 
 									division(op1,op2,result1,result2);
 								WHEN MULT =>
-									multiplication(op1,op2,result1,result2);									
+									multiplication(op1,op2,result1,result2);	
+								WHEN COMP =>
+									if(signed(op1) < signed(op2)) then
+												result1 <= std_logic_vector(to_signed(1, word_length));
+												cc_v <= '1';
+											else
+												result1 <= std_logic_vector(to_signed(0, word_length));
+												cc_v <= '0';
+											end if;
+									result2 <= DONTCARE;
 								WHEN OTHERS => 
 									ASSERT false REPORT "Illegal alu instruction" SEVERITY warning;
 							 END CASE;

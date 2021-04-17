@@ -50,6 +50,7 @@ BEGIN
 					IF reset = '1' THEN
 						EXIT;
 					END if;
+					ASSERT false REPORT "I wait" SEVERITY warning;
 					EXIT WHEN alu_ready = '1';
 				end LOOP;
 				alu_start <= '0';
@@ -130,10 +131,10 @@ BEGIN
 							control <= (read_reg => '1', others => '0');
 							datapath_ready;
 							send_alu(ADD);
-							IF(cc_n = '0' ) THEN
+							IF(cc_z = '1' or cc_n = '0') THEN
 								control <= (pc_imm => '1', others => '0');
 								datapath_ready;
-								END IF;
+							END IF;
 						WHEN BEQ =>
 							control <= (read_reg => '1', enable_rt => '1', others => '0');
 							datapath_ready;

@@ -43,7 +43,8 @@ PACKAGE processor_types IS
   CONSTANT MFHI:     bit6:="010000";
   CONSTANT MULT:     bit6:="011000";
   CONSTANT SLT:      bit6:="101010";
-  CONSTANT COMP:		bit6:="111111";
+  CONSTANT COMP:     bit6:="111111";
+  
   
   --nop instruction
   CONSTANT NOP:      word:="00000000000000000000000000000000";
