@@ -48,7 +48,6 @@ ARCHITECTURE behaviour OF testbench_instructions IS
 	
 	PROCESS
 	BEGIN
---		IF(falling_edge(clk)) THEN
 		WAIT UNTIL falling_edge(clk);
 			ASSERT inputcpu_bus_beh = inputcpu_bus_inst REPORT "inequality on the input bus from memory" SEVERITY note;
 			ASSERT outputcpu_bus_beh = outputcpu_bus_inst REPORT "inequality on the output bus to memory" SEVERITY note;
@@ -56,7 +55,6 @@ ARCHITECTURE behaviour OF testbench_instructions IS
 			ASSERT write_beh = write_inst REPORT "inequality on the write bus" SEVERITY note;
 			ASSERT read_beh = read_inst REPORT "inequality on the read bus" SEVERITY note;
 			ASSERT ready_beh = ready_inst REPORT "inequality on the ready bus" SEVERITY note;
---		END IF;
 	END PROCESS;
 			
 	
