@@ -22,7 +22,6 @@ PACKAGE processor_types IS
   TYPE bool2std_logic_table IS ARRAY (boolean) OF std_logic;
   CONSTANT BOOL2STD:bool2std_logic_table:=(false=>'0', true=>'1');
   
-
   -- instruction set opcode
   CONSTANT RTYPE:		bit6:="000000";
   CONSTANT BGEZ:     bit6:="000001"; 

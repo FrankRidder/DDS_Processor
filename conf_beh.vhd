@@ -36,3 +36,5 @@ CONFIGURATION cnf_dp_ctrl_test OF testbench IS
 
   END FOR;
 END cnf_dp_ctrl_test;
+
+

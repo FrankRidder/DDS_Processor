@@ -90,26 +90,26 @@ ARCHITECTURE behaviour OF datapath IS
 		END to_upper;
 
 		BEGIN 
-			ready <= readyi; 
-			cc <= alu_cc;
-			control <= std2ctlr(ctrl_bus); -- using control conversion (see lecture and alu example)
-			
 			alu_op1 <= read_register(rs, regfile) WHEN (control(read_reg) = '1') ELSE (others => '0');
  	
-			alu_op2 <= read_register(rt, regfile) WHEN (control(enable_rt) = '1') ELSE
-							read_register(rd, regfile) WHEN (control(enable_rd) = '1') ELSE
+			alu_op2 <= 	read_register(rt, regfile) WHEN (control(enable_rt) = '1') ELSE
 							sign_extend(imm) WHEN (control(enable_imm) = '1') ELSE
 							to_upper(imm) WHEN (control(imm_upper) = '1') ELSE								
 							(others => '0');
-			
+	
+			ready <= readyi; 
+			cc <= alu_cc;
+			control <= std2ctlr(ctrl_bus); -- using control conversion (see lecture and alu example)
+				
 		PROCESS
 			BEGIN
 			WAIT UNTIL rising_edge(clk);
+
 			IF (reset = '1') THEN
 				current_instr <= (others => '0');
 				regfile <= (others => (others => '0'));
 				readyi <= '1';
-				read <= '0';
+				read   <= '0';
 				write <= '0';
 				pc <= std_logic_vector(to_signed(text_base_address, word_length));
 				cc <= "000"; -- clear condition code register
@@ -117,28 +117,30 @@ ARCHITECTURE behaviour OF datapath IS
 				IF (readyi = '1') THEN
 					IF (control(read_mem) = '1') and (mem_ready = '0') AND (control(pc_incr) = '1') THEN
 						address_bus <= pc;
-						read <= '1';
+						read   <= '1';
 						readyi <= '0';
 					ELSIF (control(read_mem) = '1') and (mem_ready = '0') THEN
 						address_bus <= alu_result1;
-						read <= '1';
+						read   <= '1';
 						readyi <= '0';
 					ELSIF (control(write_mem) = '1') and (mem_ready = '0') THEN
-						output_bus <= read_register(rd, regfile);
+						output_bus <= read_register(rt, regfile);
 						address_bus <= alu_result1;
-						write <= '1';
+						write  <= '1';
 						readyi <= '0';
 					ELSIF (control(write_reg) = '1' AND control(enable_low) = '1' AND control(enable_hi) = '1') THEN
 						lo <= alu_result1;
 						hi <= alu_result2;
+					ELSIF (control(write_reg) = '1' and control(enable_rt) = '1') THEN
+						write_register(rt, alu_result1, regfile);
 					ELSIF (control(write_reg) = '1') THEN
 						write_register(rd, alu_result1, regfile);
 					ELSIF (control(enable_low) = '1') THEN
+						ASSERT false REPORT "mv low" SEVERITY warning;
 						write_register(rd, lo, regfile);
 					ELSIF (control(enable_hi) = '1') THEN
 						write_register(rd, hi, regfile);
 					ELSIF (control(pc_imm) = '1') THEN
-						ASSERT false REPORT "im here" SEVERITY warning;
 						pc <= std_logic_vector(signed(pc) + signed(std_logic_vector'(imm & "00")));
 					END IF;
 				ELSE
