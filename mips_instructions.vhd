@@ -220,35 +220,56 @@ BEGIN
 		  ALIAS Q: word IS EAQ(word_length -1 downto 0);
 		  
 		  VARIABLE B : word;
+		  
+		  VARIABLE signQ : std_logic;
+		  VARIABLE signB : std_logic;
+		  VARIABLE sign: std_logic;
+		  VARIABLE mult: std_logic_vector(31 downto 0);
 
 		  begin
 		    E := '0';
 		    A := (others => '0');
 		    Q := dividend;
 		    B := divisor;
+			 sign := '0';
+			 signQ := '0';
+			 signB := '0';
+			 
+			 if(Q(31) = '1') then
+				Q := std_logic_vector(unsigned(-signed(Q)));
+				signQ := '1';
+			 end if;
+			 
+			 if(B(31) = '1') then
+			 B := std_logic_vector(unsigned(-signed(B)));
+				signB := '1';
+			end if;
+			sign := signQ xor signB;
 
 		  for i in 1 to word_length loop
-		    EAQ := EAQ((double_word_length -1) downto 0) & '0'; -- shift left EAQ
+		    EAQ := EAQ((double_word_length -1) downto 0) & '0';
 
 				CASE E IS
-		      WHEN '0' => -- A >= B
-				subtraction(A, B, EA);
---		      EA := std_logic_vector(signed(A)-signed(B));
-		      WHEN others => -- A < B
---		      EA := std_logic_vector(signed(A)+signed(B));
-				addition(A, B, EA);
+		      WHEN '0' =>
+					subtraction(A, B, EA);
+		      WHEN others =>
+					addition(A, B, EA);
 			 END CASE;
 
-		    EAQ(0) := not E; -- set last bit of the quotient
+		    Q(0) := not E; -- set last bit of the quotient
 		  END LOOP;
 		  
 		  IF(E = '1') THEN
---		   A := std_logic_vector(signed(A)+signed(B));
-			addition(A, B, A);
+			addition(A, B, EA);
 		  END IF;
+		  
+		  if(sign ='1')then
+		  EA := A &'0';
+		  Q := std_logic_vector(-signed(unsigned(Q)));
+		  end if;
 
 		  remainder := A;
-		  quotient := Q;
+		  quotient := Q; --is okay
 
 		END division;
 	

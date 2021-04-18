@@ -12,7 +12,7 @@ vcom -quiet mips_instructions.vhd
 vcom -quiet testbench_instructions.vhd
 vcom -quiet cnf_inst_test.vhd
 
-vsim work.cnf_inst_test
+vsim work.cnf_aprox_test
 
 add wave *
 add wave -position insertpoint /testbench_instructions/behaviour/line__11/lo 
@@ -20,4 +20,4 @@ add wave -position insertpoint /testbench_instructions/instructions/line__11/lo
 add wave -position insertpoint /testbench_instructions/behaviour/line__11/hi
 add wave -position insertpoint /testbench_instructions/instructions/line__11/hi
 
-run 5900ns
+run 66570ns
