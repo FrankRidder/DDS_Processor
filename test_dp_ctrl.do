@@ -15,7 +15,8 @@ vcom -quiet conf_beh.vhd
 
 vsim work.cnf_dp_ctrl_test
 
-add wave *
-add wave sim:/testbench/cpu/*
+set NumericStdNoWarnings 1
 
-run 200ns
+add wave sim:/testbench/cpu/dp/*
+
+run 700000ns

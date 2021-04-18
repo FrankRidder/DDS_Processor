@@ -158,7 +158,9 @@ ARCHITECTURE behaviour OF alu IS
 									set_clear_cc(to_integer(signed(op1) - signed(op2)), result1);
 									result2 <= DONTCARE;
 								WHEN DIV => 
-									division(op1,op2,result1,result2);
+									--division(op1,op2,result1,result2);
+									result1 <= std_logic_vector(signed(op1) / signed(op2));
+									result2 <= std_logic_vector(signed(op1) mod signed(op2));
 								WHEN MULT =>
 									multiplication(op1,op2,result1,result2);	
 								WHEN COMP =>

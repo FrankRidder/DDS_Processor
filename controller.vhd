@@ -68,6 +68,7 @@ BEGIN
 
 			ELSIF (rising_edge(clk)) THEN
 				control <= (read_mem => '1', pc_incr => '1', others => '0');
+				WAIT UNTIL rising_edge(clk);
 				datapath_ready;
 
 				IF(instruction = NOP) THEN
@@ -89,13 +90,17 @@ BEGIN
 								WHEN ADD =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									send_alu(ADD);
-									control <= (write_reg => '1', others => '0');
-									datapath_ready;
+									IF(cc_v = '0') then
+										control <= (write_reg => '1', others => '0');
+										WAIT UNTIL rising_edge(clk);
+									END IF;
 								WHEN SUBOP =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									send_alu(SUBOP);
-									control <= (write_reg => '1', others => '0');
-									WAIT UNTIL rising_edge(clk);
+									IF(cc_v = '0') then
+										control <= (write_reg => '1', others => '0');
+										WAIT UNTIL rising_edge(clk);
+									END IF;
 								WHEN DIV =>
 									control <= (read_reg => '1', enable_rt => '1', others => '0');
 									send_alu(DIV);
@@ -126,7 +131,6 @@ BEGIN
 							send_alu(ADD);
 							IF(cc_z = '1' or cc_n = '0') THEN
 								control <= (pc_imm => '1', others => '0');
-								ASSERT false REPORT "do it" SEVERITY warning;
 							END IF;
 							WAIT UNTIL rising_edge(clk);
 						WHEN BEQ =>
@@ -139,24 +143,33 @@ BEGIN
 						WHEN ORI=>
 							control <= (read_reg => '1', enable_imm => '1', others => '0');
 							send_alu(OROP);
-							control <= (write_reg => '1', others => '0');
-							WAIT UNTIL rising_edge(clk);
+							IF(cc_v = '0') then
+									control <= (write_reg => '1', enable_rt => '1', others => '0');
+									WAIT UNTIL rising_edge(clk);
+							END IF;
 						WHEN ADDI =>
 							control <= (read_reg => '1', enable_imm => '1', others => '0');
 							send_alu(ADD);
-							control <= (write_reg => '1', others => '0');
-							WAIT UNTIL rising_edge(clk);
+							IF(cc_v = '0') then
+								control <= (write_reg => '1', enable_rt => '1', others => '0');
+								WAIT UNTIL rising_edge(clk);
+							END IF;
 						WHEN LUI =>
-							control <= (read_reg => '1', enable_imm => '1', imm_upper => '1',  others => '0');
+							control <= (imm_upper => '1',  others => '0');
+							send_alu(ADD);
+							control <= (write_reg => '1', enable_rt => '1', others => '0');
+							WAIT UNTIL rising_edge(clk);
 						WHEN LW =>
 							control <= (read_reg => '1', enable_imm => '1', others => '0');
 							send_alu(ADD);
 							control <= (read_mem => '1', others => '0');
+							WAIT UNTIL rising_edge(clk);
 							datapath_ready;
 						WHEN SW =>
 							control <= (read_reg => '1', enable_imm => '1', others => '0');
 							send_alu(ADD);
 							control <= (write_mem => '1', others => '0');
+							WAIT UNTIL rising_edge(clk);
 							datapath_ready;
 						WHEN OTHERS =>
 							ASSERT false REPORT "Illegal I-Type instruction" SEVERITY warning;
