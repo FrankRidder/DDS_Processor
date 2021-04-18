@@ -111,8 +111,8 @@ ARCHITECTURE behaviour OF datapath IS
 				readyi <= '1';
 				read   <= '0';
 				write <= '0';
-				hi <= =(others => '0');
-				lo <= =(others => '0');
+				hi <= (others => '0');
+				lo <= (others => '0');
 				pc <= std_logic_vector(to_signed(text_base_address, word_length));
 				cc <= "000"; -- clear condition code register
 			ELSE
