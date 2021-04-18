@@ -17,6 +17,6 @@ vsim work.cnf_dp_test
 
 set NumericStdNoWarnings 1
 
-add wave /testbench/cpu/dp/*
+add wave *
 
 run 700000ns

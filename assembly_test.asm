@@ -11,6 +11,7 @@ add $8, $4, $4 #place 4+4 in register 8
 # change because this is 0: and  $8, $4, $2 # logic and between 4 and 8 placed in 2
 or $3, $4, $8 #logic or between 4 and 8 placed in 3
 ori $5, $4 , 12 #logic or between 4 and 12 placed in register 5
+and $15, $4, $5 #logic and between $4 and $5
 mult $8, $4 #multiply 8 by 4, 32 MSB in HI, 32 LSB in LO
 sub $5, $8, $4 #substract 4 from 8 and place it in 5
 div $8, $4 #divide 8 by 4, 32 MSB in HI, 32 LSB in LO

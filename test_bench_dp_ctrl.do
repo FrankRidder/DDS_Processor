@@ -13,7 +13,7 @@ vcom -quiet testbench.vhd
 vcom -quiet mips_dp_ctrl.vhd
 vcom -quiet conf_beh.vhd
 
-vsim work.cnf_dp_ctrl_aprox
+vsim work.cnf_ctrl_dp_test
 
 set NumericStdNoWarnings 1
 
