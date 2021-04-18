@@ -49,12 +49,14 @@ ARCHITECTURE behaviour OF testbench_instructions IS
 	PROCESS
 	BEGIN
 		WAIT UNTIL falling_edge(clk);
+		IF (reset = '0') THEN
 			ASSERT inputcpu_bus_beh = inputcpu_bus_inst REPORT "inequality on the input bus from memory" SEVERITY note;
 			ASSERT outputcpu_bus_beh = outputcpu_bus_inst REPORT "inequality on the output bus to memory" SEVERITY note;
 			ASSERT address_bus_beh = address_bus_inst REPORT "inequality on the address bus" SEVERITY note;
 			ASSERT write_beh = write_inst REPORT "inequality on the write bus" SEVERITY note;
 			ASSERT read_beh = read_inst REPORT "inequality on the read bus" SEVERITY note;
 			ASSERT ready_beh = ready_inst REPORT "inequality on the ready bus" SEVERITY note;
+		END IF;
 	END PROCESS;
 			
 	

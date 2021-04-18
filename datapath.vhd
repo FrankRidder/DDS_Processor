@@ -115,6 +115,8 @@ ARCHITECTURE behaviour OF datapath IS
 				lo <= (others => '0');
 				pc <= std_logic_vector(to_signed(text_base_address, word_length));
 				cc <= "000"; -- clear condition code register
+				address_bus <= (others => '0');
+				output_bus <= (others => '0');
 			ELSE
 				IF (readyi = '1') THEN
 					IF (control(read_mem) = '1') and (mem_ready = '0') AND (control(pc_incr) = '1') THEN
