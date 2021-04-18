@@ -129,14 +129,13 @@ ARCHITECTURE behaviour OF datapath IS
 						write  <= '1';
 						readyi <= '0';
 					ELSIF (control(write_reg) = '1' AND control(enable_low) = '1' AND control(enable_hi) = '1') THEN
-						lo <= alu_result1;
-						hi <= alu_result2;
+						hi <= alu_result1;
+						lo <= alu_result2;
 					ELSIF (control(write_reg) = '1' and control(enable_rt) = '1') THEN
 						write_register(rt, alu_result1, regfile);
 					ELSIF (control(write_reg) = '1') THEN
 						write_register(rd, alu_result1, regfile);
 					ELSIF (control(enable_low) = '1') THEN
-						ASSERT false REPORT "mv low" SEVERITY warning;
 						write_register(rd, lo, regfile);
 					ELSIF (control(enable_hi) = '1') THEN
 						write_register(rd, hi, regfile);
